@@ -2,6 +2,26 @@ import { test, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import { openSavedScenario } from './saved-report.ts';
 
+test('rapid map zoom and tab switches do not leave errors after the map closes', async ({ page, request }) => {
+  const errors: string[] = [];
+  page.on('pageerror', error => errors.push(error.message));
+  await openSavedScenario(page, request, 'taiwan-strait-2026');
+  await page.getByRole('button', { name: '공군 11월 훈련 공고 판단 선택', exact: true }).click();
+  for (let iteration = 0; iteration < 3; iteration++) {
+    await page.getByRole('tab', { name: '지도', exact: true }).click();
+    await expect(page.locator('.leaflet-overlay-pane path')).not.toHaveCount(0);
+    await page.getByRole('tab', { name: '타임라인', exact: true }).evaluate(tab => {
+      (document.querySelector('.leaflet-control-zoom-in') as HTMLElement).click();
+      (tab as HTMLElement).click();
+    });
+    await expect(page.locator('.leaflet-container')).toHaveCount(0);
+    // Leaflet 1.9's transition fallback fires 250 ms after zoom starts.
+    await page.waitForTimeout(350);
+  }
+  await expect(page.locator('#panel-timeline')).toContainText('공군 훈련 첫 예정일');
+  expect(errors).toEqual([]);
+});
+
 test('archived APAC report → multilingual quotes → reasoning → map → source merge → approval → export', async ({ page, request }) => {
   test.setTimeout(60000);
   const errors: string[] = [];

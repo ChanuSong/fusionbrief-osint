@@ -250,3 +250,11 @@ CAPTCHA, 정상적인 결과 없음, 해석할 수 없는 응답을 구분하고
 검증: **단위 테스트 116개, 브라우저 테스트 18개, TypeScript·Vite 빌드 통과**. 브라우저 단계 전환·연결 실패 시험에는 모의 API를 사용했고, 위 실행은 실제 연결로 별도로 검증했다. 기존 5176에서는 홈 변경과 추천/시연 요청 0건을 읽기 전용으로 확인했다. 실제 전체 실행은 최신 서버 `http://127.0.0.1:5188`과 별도 `.local/nk-demo-store.json`에서 수행했다. 기존 5176 프로세스와 사용자 보고서 저장소는 변경하지 않았다. `npm run demo`도 현재는 실제 분석을 실행하므로 로그인한 Cursor CLI가 필요하다.
 
 화면: `output/previews/analysis-home.png`, `analysis-home-mobile.png`, `analysis-live-events.png`, `analysis-live-events-mobile.png`, `analysis-live-report.png`, `analysis-live-report-mobile.png`. 실제 연결 결과는 `.local/home-live-verification.json`, 모바일 재확인은 `.local/home-report-mobile-verification.json`이다.
+
+
+## 제출용 공개 데모 검증 (2026-10-11 KST)
+
+- [공개 웹 데모](https://chanusong.github.io/trace-osint-copilot/)의 4개 보존 사례, 정확한 원문 강조, 공개 이미지, Markdown·JSON-LD 내보내기, 실제 좌표 지도, 390px 화면을 브라우저로 확인했다. 최종 실행의 브라우저 오류와 데이터 변경 요청은 0건이다. 구조화 기록은 `output/submission/demo-verification.json`에 있다.
+- 실제 UI 조작과 실제 수집 중 보존한 화면 기록으로 1920×1080, 2분 55초의 한국어 설명 영상을 제작했다. [YouTube 링크](https://youtu.be/TZ5jBSRmG78)는 일부 공개이며 공개 oEmbed 응답을 확인했다. 실시간 온라인 검색·분석으로 표시하지 않는다.
+- 관계 그래프의 화면상 글자 크기와 간격을 조정했다. 지도 확대 직후 다른 화면으로 이동할 때 Leaflet의 지연된 확대 처리에서 오류가 발생해, 확대 애니메이션과 초기 범위 맞춤 애니메이션을 끄고 정리된 지도에 대한 크기 변경 처리를 차단했다. 빠른 지도 확대·탭 전환 3회와 기존 APAC 전체 흐름의 브라우저 검사 2개가 통과했다.
+- 단위 테스트 116개와 기존 브라우저 테스트 18개 통과 후 위 회귀 검사를 추가했다. 최종 TypeScript·앱 빌드·정적 웹 데모 빌드도 통과했다.

@@ -23,7 +23,8 @@ export function LocationView({ run, onEvidence }: { run: AnalysisRun; onEvidence
     if (!host.current) return;
     let disposed = false;
     const controller = new AbortController();
-    const map = L.map(host.current, { attributionControl: true, scrollWheelZoom: false, minZoom: 1, maxZoom: 10 }).setView([25, 120], 3);
+    // A report can unmount while Leaflet's zoom transition timer is still pending.
+    const map = L.map(host.current, { attributionControl: true, scrollWheelZoom: false, zoomAnimation: false, minZoom: 1, maxZoom: 10 }).setView([25, 120], 3);
     map.attributionControl.addAttribution('국가 윤곽: <a href="https://www.naturalearthdata.com/about/terms-of-use/" target="_blank" rel="noreferrer">Natural Earth · Public Domain</a>');
     const data: { entities: AnalysisRun['entities']; locations: NonNullable<AnalysisRun['locations']> } = JSON.parse(dataKey);
     fetch(publicResource('maps/countries.geojson'), { signal: controller.signal }).then(response => { if (!response.ok) throw Error('지도 파일을 불러오지 못했습니다.'); return response.json(); }).then((geo: FeatureCollection<Geometry, CountryProperties>) => {
@@ -46,13 +47,13 @@ export function LocationView({ run, onEvidence }: { run: AnalysisRun; onEvidence
       setReferenceCountries([...selectedCountries]);
       const markers = data.locations.map((location, index) => L.circleMarker([location.latitude, location.longitude], { radius: 7, color: '#9c602d', fillColor: '#cc9155', fillOpacity: .85, weight: 2 }).addTo(map).on('click', () => setSelected(String(index))));
       markers.forEach((marker, index) => { const label = document.createElement('span'); label.textContent = data.locations[index].name; marker.bindTooltip(label); });
-      if (markers.length) map.fitBounds(L.featureGroup(markers).getBounds().pad(.3), { maxZoom: 6 });
+      if (markers.length) map.fitBounds(L.featureGroup(markers).getBounds().pad(.3), { maxZoom: 6, animate: false });
       else {
         const points = geo.features.filter(f => matches(f.properties)).map(f => L.latLng(f.properties.LABEL_Y, f.properties.LABEL_X));
-        if (points.length) map.fitBounds(L.latLngBounds(points).pad(.45), { maxZoom: 5 });
+        if (points.length) map.fitBounds(L.latLngBounds(points).pad(.45), { maxZoom: 5, animate: false });
       }
     }).catch(e => { if (!disposed && e.name !== 'AbortError') setError(e.message); });
-    const observer = new ResizeObserver(() => map.invalidateSize()); observer.observe(host.current);
+    const observer = new ResizeObserver(() => { if (!disposed) map.invalidateSize({ animate: false }); }); observer.observe(host.current);
     return () => { disposed = true; controller.abort(); observer.disconnect(); map.remove(); };
   }, [dataKey]);
   const location = locations[Number(selected ?? 0)];

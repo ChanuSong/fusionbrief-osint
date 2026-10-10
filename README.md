@@ -2,7 +2,7 @@
 
 공개 정보에서 검증 가능한 판단으로. 자연어 질의를 조사 전략으로 해석하고 여러 공개 출처를 수집·교차검증해 **주장마다 원문 인용과 신뢰도가 연결된 정보분석 보고서와 시각화**를 생성합니다.
 
-[웹 데모](https://chanusong.github.io/trace-osint-copilot/) · [설명 영상](https://chanusong.github.io/trace-osint-copilot/trace-walkthrough.mp4) · [수상작·출품작 분석](output/submission/reference-analysis.html) · [시연 흐름](DEMO-T2-1.md) · [검증 기록](VERIFICATION-T2-1.md)
+[웹 데모](https://chanusong.github.io/trace-osint-copilot/) · [설명 영상](https://youtu.be/TZ5jBSRmG78) · [수상작·출품작 분석](output/submission/reference-analysis.html) · [시연 흐름](DEMO-T2-1.md) · [검증 기록](VERIFICATION-T2-1.md)
 
 ![김주애 분석 보고서](output/submission/screenshots/01-report.png)
 

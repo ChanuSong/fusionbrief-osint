@@ -1,0 +1,16 @@
+{
+  "base": "https://chanusong.github.io/trace-osint-copilot/",
+  "video": {
+    "duration": 174.554625,
+    "width": 1920,
+    "height": 1080
+  },
+  "cases": 4,
+  "originalCitation": true,
+  "media": true,
+  "exports": true,
+  "map": true,
+  "mobile": true,
+  "errors": [],
+  "mutations": []
+}
