@@ -1,0 +1,75 @@
+import { test, expect } from '@playwright/test';
+const runId = '20000000-0000-0000-0000-000000000001';
+
+test('stored criterion report → normative quote → event quote → real review API → held judgment and export', async ({ page, request }) => {
+  const errors: string[] = []; page.on('pageerror', e => errors.push(e.message));
+  const original = await request.get(`/api/runs/${runId}`); expect(original.status()).toBe(200);
+  await page.goto('/');
+  await page.locator('.recent-runs button').filter({ hasText: '자동 검증 전용 가상 항만 봉쇄 판단' }).click();
+  await expect(page.getByRole('heading', { name: '핵심 판단', exact: true })).toBeVisible();
+  await expect(page.locator('.framework-lead')).toContainText('실제 접근 차단이 개시되었습니다');
+  await expect(page.getByRole('heading', { name: '판단 기준과 사건 대조', exact: true })).toBeVisible();
+  await expect(page.locator('.criterion-card')).toHaveCount(3);
+  await expect(page.locator('.behavior-summary')).toContainText('2종 중 1종 충족');
+  await expect(page.locator('.behavior-event-count')).toContainText('지지하는 구체적 관측·보고 1건 · 발표·예정 1건');
+  await expect(page.getByRole('heading', { name: '당사자 기준과 입장' })).toHaveCount(0);
+  await expect(page.getByRole('heading', { name: '사건 관계', exact: true })).toHaveCount(0);
+  await expect(page.getByRole('tab', { name: /타임라인|지도|근거 그래프/ })).toHaveCount(0);
+  await expect(page.getByRole('heading', { name: '다국어 근거 대조' })).toHaveCount(0);
+  await page.locator('.reasoning-trace > summary').filter({ hasText: '판단의 근거 연결' }).first().click();
+  await expect(page.locator('.reasoning-trace').first()).toContainText('원문 인용');
+  const ontology = await request.get(`/api/runs/${runId}/ontology`);
+  expect(ontology.headers()['content-type']).toContain('application/ld+json');
+  expect((await ontology.json())['@graph'].some((n: { '@type': string }) => n['@type'] === 'Provision')).toBeTruthy();
+  await page.locator('.framework-plan > summary').click();
+  await expect(page.getByRole('heading', { name: '질의 해석과 조사 전략' })).toBeVisible();
+  await page.screenshot({ path: 'test-results/framework-desktop.png', fullPage: true });
+  await page.getByRole('button', { name: '실효적 접근 차단 기준 원문 보기' }).click();
+  await expect(page.getByRole('dialog').locator('mark')).toHaveText('Effective prevention of access requires actual denial of passage to a port.');
+  await expect(page.getByRole('dialog')).toContainText('비구속적 전문가 매뉴얼');
+  await expect(page.getByRole('link', { name: '공개 원문 열기' })).toHaveAttribute('href', 'https://manual.example.gov/document');
+  await page.keyboard.press('Escape');
+  await page.locator('.framework-lead .answer-citations button').click();
+  await expect(page.getByRole('dialog').locator('mark')).toContainText('Vessel V was turned away');
+  await page.keyboard.press('Escape');
+  const run = await original.json();
+  const review = await request.post(`/api/runs/${runId}/reviews`, { data: { expectedVersion: run.version, claimId: 'access-claim', action: 'independence', evidenceIds: ['access-claim-e1'], independent: true, reason: '브라우저 검증 전용 가상 관측 독립성 확인' } });
+  expect(review.status()).toBe(200);
+  await page.reload(); await page.locator('.recent-runs button').filter({ hasText: '자동 검증 전용 가상 항만 봉쇄 판단' }).click();
+  await expect(page.locator('.framework-lead')).toContainText('재검증이 필요합니다');
+  await expect(page.getByRole('button', { name: '기준별 판단 재검증' })).toBeVisible();
+  await expect(page.locator('.behavior-summary')).toHaveCount(0);
+  const pending = await review.json();
+  const rejectedApproval = await request.post(`/api/runs/${runId}/approval`, { data: { expectedVersion: pending.version, reviewer: '테스터', decision: 'approved', reason: '승인 차단 조건 확인' } });
+  expect(rejectedApproval.status()).toBe(400);
+  await page.getByRole('button', { name: '기준별 판단 재검증' }).click();
+  await expect(page.getByRole('alert')).toContainText('실시간 모델 연결');
+  const exported = await request.get(`/api/runs/${runId}/export`); const md = await exported.text();
+  expect(md).toContain('재검증이 필요합니다'); expect(md).toContain('manual.example.gov'); expect(md).not.toContain('## 확인한 행위와 사건');
+  expect(errors).toEqual([]);
+});
+
+test('preserved criterion knowledge is browsable across investigations through the actual archive API', async ({ page, request }) => {
+  const catalog = await request.get('/api/knowledge'); expect(catalog.status()).toBe(200);
+  const { documents } = await catalog.json(); expect(documents.length).toBeGreaterThan(0);
+  expect(documents[0].body).toBeUndefined();
+  await page.goto('/'); await page.getByRole('button', { name: '공개 자료', exact: true }).click();
+  await expect(page.getByRole('heading', { name: '보존한 기준 지식' })).toBeVisible();
+  await page.getByRole('searchbox', { name: '기준 자료 찾기' }).fill('1994');
+  await expect(page.locator('.knowledge-documents article')).toHaveCount(1);
+  await page.getByRole('button', { name: '보존 원문 보기' }).click();
+  await expect(page.getByRole('dialog')).toContainText('Synthetic Test Manual');
+  await expect(page.getByRole('dialog')).toContainText('판본 1994');
+  await page.keyboard.press('Escape');
+});
+
+test('no research result omits empty sections and views while keeping a material information gap on mobile', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/'); await page.locator('.history-section > summary').click(); await page.locator('.recent-runs button').filter({ hasText: '자동 검증 전용 근거 없는 질문' }).click();
+  await expect(page.locator('.framework-lead')).toContainText('사건 근거를 확보하지 못했습니다');
+  await expect(page.locator('.framework-material-gaps')).toContainText('실효적 접근 차단');
+  for (const id of ['report-criteria', 'report-behaviors', 'report-chronology', 'report-perspectives', 'report-alternatives', 'report-comparison', 'report-wisdom', 'report-evidence']) await expect(page.locator(`#${id}`)).toHaveCount(0);
+  await expect(page.getByRole('tab', { name: /지도|타임라인|근거 그래프/ })).toHaveCount(0);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBeTruthy();
+  await page.screenshot({ path: 'test-results/framework-empty-mobile.png', fullPage: true });
+});

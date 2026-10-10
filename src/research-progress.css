@@ -1,0 +1,26 @@
+.research-activity.is-running { max-width: 1120px; margin-left: auto; margin-right: auto; }
+.progress-workspace { margin-top: 26px; }
+.progress-workspace.has-sources { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(280px, 1fr); gap: 24px; align-items: start; }
+.progress-workspace .progress-current { margin-top: 0; min-width: 0; }
+.progress-workspace .active-tasks { grid-template-columns: minmax(0, 1fr); min-width: 0; }
+.progress-workspace .active-tasks li { min-width: 0; }
+.progress-sources { min-width: 0; padding: 20px; border: 1px solid var(--line); background: #f8fafb; }
+.progress-sources-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.progress-sources-heading h2 { font-size: 15px; font-weight: 650; }
+.progress-sources-heading > span { font-size: 12px; color: var(--muted); }
+.progress-sources > p { font-size: 12px; line-height: 1.8; color: var(--muted); margin-top: 9px; }
+.progress-source-list { margin-top: 16px; max-height: 440px; overflow-y: auto; scrollbar-width: thin; }
+.progress-source-list li { padding: 14px 0; border-top: 1px solid var(--line); }
+.progress-source-list li > div { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--muted); }
+.progress-source-list li svg { color: var(--ok); flex-shrink: 0; }
+.progress-source-list li time { margin-left: auto; font-variant-numeric: tabular-nums; }
+.progress-source-list li a { display: block; margin-top: 7px; font-size: 13px; font-weight: 550; color: var(--ink); line-height: 1.75; overflow-wrap: anywhere; }
+.progress-source-list li a:hover { text-decoration: underline; text-underline-offset: 3px; }
+.progress-source-list li > small { display: block; margin-top: 5px; font-size: 11px; line-height: 1.7; color: var(--muted); overflow-wrap: anywhere; }
+@media (max-width: 900px) {
+  .progress-workspace.has-sources { grid-template-columns: minmax(0, 1fr); gap: 20px; }
+  .progress-source-list { max-height: 300px; }
+}
+@media (max-width: 440px) {
+  .progress-sources { padding: 16px; }
+}

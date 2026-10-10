@@ -1,0 +1,11 @@
+node_modules/
+dist/
+dist-showcase/
+.local/
+.env
+.env.*
+!.env.example
+test-results/
+playwright-report/
+onboarding-draft.json
+.DS_Store

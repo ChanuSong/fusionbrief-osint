@@ -1,0 +1,28 @@
+import { spawn } from 'node:child_process';
+import { mkdir, writeFile } from 'node:fs/promises';
+import { researchedFramework } from './fixtures/framework.ts';
+import { openCriterionKnowledge } from '../server/criterion-knowledge.ts';
+import { openStore } from '../server/store.ts';
+// An isolated test store only; never seeds the user's store or the demo catalog.
+const { run } = await researchedFramework({ actual: true });
+run.id = '20000000-0000-0000-0000-000000000001';
+run.question = '자동 검증 전용 가상 항만 봉쇄 판단';
+const empty = structuredClone(run);
+empty.id = '20000000-0000-0000-0000-000000000002'; empty.question = '자동 검증 전용 근거 없는 질문';
+empty.sources = []; empty.claims = []; empty.evidence = []; empty.collections = [];
+empty.analysis!.criteria.forEach(c => { c.basis = []; c.basisStatus = 'unavailable'; });
+empty.analysis!.assessments.forEach(a => { a.status = 'unknown'; a.claimIds = []; });
+empty.analysis!.observations = []; empty.analysis!.perspectives = []; empty.analysis!.alternatives = []; empty.analysis!.sourcePolicies = [];
+empty.analysis!.judgment = { text: '이 질문의 핵심 판단에 필요한 사건 근거를 확보하지 못했습니다.', status: 'undetermined', confidence: { level: 'undetermined', reason: '실효적 접근 차단의 관측 미확인' }, criterionIds: ['access'], claimIds: [], limitations: ['실효적 접근 차단에 관한 관측이 필요합니다.'] };
+await mkdir('.local', { recursive: true });
+const knowledge = await openCriterionKnowledge('.local/browser-test-knowledge.sqlite', () => new Date(run.createdAt));
+const norm = run.sources.find(s => s.id === 'manual')!;
+const preserved = knowledge.preserve(norm, run.analysis!.criteria.flatMap(c => c.basis), ['가상 검증 자료'])!;
+run.sources = run.sources.map(s => s.id === norm.id ? preserved : s);
+await writeFile('.local/browser-test-store.json', JSON.stringify({ schema: 1, runs: [] }));
+const store = await openStore('.local/browser-test-store.json', knowledge);
+await store.add(empty); await store.add(run);
+knowledge.close();
+const server = spawn(process.execPath, ['--import', 'tsx', 'server/index.ts', '--port', '5174', '--store', '.local/browser-test-store.json', '--knowledge', '.local/browser-test-knowledge.sqlite'], { stdio: 'inherit', env: { ...process.env, TRACE_LIVE_ENABLED: '0' } });
+for (const signal of ['SIGINT', 'SIGTERM'] as const) process.on(signal, () => server.kill(signal));
+server.on('exit', code => process.exit(code ?? 0));
