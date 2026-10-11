@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { SYNTHETIC_SCENARIO as data, DEFAULT_SCENARIO_OPTIONS as defaults, analyzeSyntheticScenario, crossesZone } from '../shared/synthetic-scenario.ts';
+import { SYNTHETIC_SCENARIO as data, DEFAULT_SCENARIO_OPTIONS as defaults, analyzeSyntheticScenario, crossesZone, distanceKm } from '../shared/synthetic-scenario.ts';
 
 test('synthetic routing analysis derives paired aircraft and ship detours and excludes stale records',()=>{
   const r=analyzeSyntheticScenario(data,defaults);
@@ -34,4 +34,20 @@ test('expired scenario evidence cannot support a current high-risk rating',()=>{
 test('untagged input is rejected and duplicated aircraft samples do not add independent entities',()=>{
   assert.throws(()=>analyzeSyntheticScenario({...data,synthetic:false} as never,defaults));
   const r=analyzeSyntheticScenario({...data,tracks:[...data.tracks,data.tracks[0]]},defaults);assert.equal(r.air.eligible,8);
+});
+test('synthetic telemetry has distinct routes, ordered samples and plausible aircraft and vessel speeds',()=>{
+  assert.equal(new Set(data.tracks.map(t=>JSON.stringify(t.observed.map(p=>[p.latitude,p.longitude])))).size,data.tracks.length);
+  assert(data.tracks.reduce((n,t)=>n+t.baseline.length+t.observed.length,0)>800);
+  const assessment=analyzeSyntheticScenario(data,defaults);
+  for(const t of data.tracks){
+    for(const period of ['baseline','observed'] as const){
+      assert(t[period].length>15);
+      for(let i=1;i<t[period].length;i++){
+        const before=t[period][i-1],after=t[period][i];assert(after.minute>before.minute);
+        const knots=distanceKm(before,after)/(after.minute-before.minute)*60/1.852;
+        assert(t.kind==='aircraft'?knots>=350&&knots<=500:knots>=12&&knots<=22);
+      }
+    }
+    if(assessment.tracks.find(a=>a.id===t.id)?.eligible)assert(t.observed[0].minute>=data.zone.startMinute);
+  }
 });
