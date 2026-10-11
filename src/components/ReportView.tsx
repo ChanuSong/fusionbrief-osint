@@ -98,7 +98,7 @@ export function ReportView({ run, colors, claim, onSelectClaim, view, onView, on
   useEffect(() => {
     setActiveSection('report-answer');
     setGraphContext(undefined);
-    const ids = ['report-answer', 'report-risk', 'report-collection', 'report-observations', 'report-criteria', 'report-behaviors', 'report-chronology', 'report-imagery', 'report-perspectives', 'report-alternatives', 'report-outlook', 'report-actions', 'report-sources', 'report-visuals', 'report-comparison', 'report-wisdom', 'report-evidence', 'report-review'];
+    const ids = ['report-answer', 'report-risk', 'report-synthetic', 'report-collection', 'report-observations', 'report-criteria', 'report-behaviors', 'report-chronology', 'report-imagery', 'report-perspectives', 'report-alternatives', 'report-outlook', 'report-actions', 'report-sources', 'report-visuals', 'report-comparison', 'report-wisdom', 'report-evidence', 'report-review'];
     const update = () => {
       const sections = ids.map(id => document.getElementById(id)).filter((node): node is HTMLElement => !!node && node.offsetHeight > 0);
       const current = [...sections].reverse().find(node => node.getBoundingClientRect().top <= 180) ?? sections[0];
@@ -129,6 +129,7 @@ export function ReportView({ run, colors, claim, onSelectClaim, view, onView, on
     <nav className="report-navigation" aria-label="보고서 섹션">
       <a href="#report-answer" aria-current={activeSection === 'report-answer' ? 'location' : undefined}><span>{run.analysis ? '핵심 판단' : '핵심 답변'}</span></a>
       {run.risk?.verification === 'verified' && run.analysis?.verification === 'verified' ? <a href="#report-risk" aria-current={activeSection === 'report-risk' ? 'location' : undefined}><span>위험도</span></a> : null}
+      {run.id==='36c8ba1a-bf51-44d5-a240-d7c0e0f8afce'?<a href="#report-synthetic"><span>운항 영향 · 합성</span></a>:null}
       {allSourcesRequested(run.question) || run.simulatedFeeds?.length ? <a href="#report-collection"><span>다중출처</span></a> : null}
       {allSourcesRequested(run.question) || run.simulatedFeeds?.length ? <a href="#report-observations" aria-current={activeSection === 'report-observations' ? 'location' : undefined}><span>실제 관측</span></a> : null}
       {content.criteria.length ? <a href="#report-criteria" aria-current={activeSection === 'report-criteria' ? 'location' : undefined}><span>기준·사건 대조</span></a> : null}

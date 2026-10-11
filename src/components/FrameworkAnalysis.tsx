@@ -1,12 +1,14 @@
 import { SourcePortfolio } from './SourcePortfolio.tsx';
 import type { AnalysisRun, CriterionBasis, Evidence } from '../../shared/types.ts';
-import { useMemo } from 'react';
+import { lazy, Suspense, useMemo } from 'react';
 import {GitBranch} from 'lucide-react';
 import { assessmentPaths, buildAnalysisOntology } from '../../shared/analysis-ontology.ts';
 import { AUTHORITY_LABEL, CONFIDENCE_LABEL, CRITERION_STATUS, DIMENSION_LABEL, OBSERVATION_LABEL, reportContent } from '../../shared/report-content.ts';
 import { SOURCE_MODULES } from '../../shared/source-modules.ts';
 import { mediaURL, reportExportURL } from '../resources.ts';
 import { RecommendedActions, RiskChart, RiskConclusion } from './RiskBrief.tsx';
+
+const SyntheticImpact=lazy(()=>import('../SyntheticScenario.tsx'));
 
 export function FrameworkAnalysis({ run, onEvidence, onBasis, onRevalidate, busy, onGraph }: {
   run: AnalysisRun; onEvidence: (e: Evidence) => void; onBasis: (b: CriterionBasis) => void;
@@ -44,6 +46,7 @@ export function FrameworkAnalysis({ run, onEvidence, onBasis, onRevalidate, busy
     </section>
     {!pending && framework.keyJudgments?.length ? <section className="framework-section" aria-labelledby="key-judgments-title"><div className="answer-heading"><h2 id="key-judgments-title">주요 판단</h2><span>관측 · 해석 · 전망의 근거</span></div><ol className="intel-key-judgments">{framework.keyJudgments.map((item,i)=><li key={i}><span className="intel-judgment-number">({i+1})</span><div><h3>{item.label}</h3><p>{item.text} {citations(item.claimIds)} {graphLink(item.claimIds,item.text)}</p><small>근거 신뢰도 {CONFIDENCE_LABEL[item.confidence.level]} · {item.confidence.reason}</small></div></li>)}</ol></section> : null}
     <RiskChart run={run} onEvidence={onEvidence} />
+    {run.id==='36c8ba1a-bf51-44d5-a240-d7c0e0f8afce'?<Suspense fallback={<p>운항 영향 보강 분석을 불러오고 있습니다.</p>}><SyntheticImpact/></Suspense>:null}
     <SourcePortfolio run={run} onEvidence={onEvidence} />
     {content.criteria.length ? <section id="report-criteria" tabIndex={-1} className="framework-section" aria-labelledby="criteria-title">
       <div className="answer-heading"><h2 id="criteria-title">{forecast ? '판단 지표와 근거 대조' : '판단 기준과 사건 대조'}</h2><span>{succession ? '후보 육성 · 공식 지명 · 실제 권한을 구분' : '기준의 출처 · 적용 조건 · 관측 근거'}</span></div>

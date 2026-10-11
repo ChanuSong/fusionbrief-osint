@@ -1,9 +1,7 @@
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react';
-import { BrandMark } from './components/Sidebar.tsx';
 import { SYNTHETIC_SCENARIO as data, DEFAULT_SCENARIO_OPTIONS, analyzeSyntheticScenario } from '../shared/synthetic-scenario.ts';
 import type { ScenarioOptions, SyntheticAssessment } from '../shared/synthetic-scenario.ts';
 import { RISK_LABELS, RISK_LEVELS } from '../shared/risk-policy.ts';
-import { publicResource, showcase } from './resources.ts';
 import './risk-brief.css';
 import './synthetic-scenario.css';
 const ScenarioKG=lazy(()=>import('./components/ScenarioKnowledgeGraph.tsx'));
@@ -39,17 +37,14 @@ function EvidencePanel({sourceId,onClose,result}:{sourceId:string;onClose:()=>vo
   </dialog>;
 }
 export default function SyntheticScenario(){
-  const [options,setOptions]=useState<ScenarioOptions>({...DEFAULT_SCENARIO_OPTIONS}),[started,setStarted]=useState(false),[sourceId,setSourceId]=useState<string>();
-  const result=useMemo(()=>started?analyzeSyntheticScenario(data,options):undefined,[started,options]);
-  useEffect(()=>{if(started)requestAnimationFrame(()=>document.getElementById('scenario-conclusion')?.scrollIntoView({block:'start'}));},[started]);
+  const [options,setOptions]=useState<ScenarioOptions>({...DEFAULT_SCENARIO_OPTIONS}),[sourceId,setSourceId]=useState<string>();
+  const result=useMemo(()=>analyzeSyntheticScenario(data,options),[options]);
   const toggle=(key:'tracks'|'notice'|'weather')=>setOptions(old=>({...old,[key]:!old[key]}));
   const cite=(id:string)=><button className="scenario-citation" onClick={()=>setSourceId(id)}>[{id}]</button>;
   const download=()=>{const raw=JSON.stringify({scenario:data,options,assessment:result},null,2),url=URL.createObjectURL(new Blob([raw],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='fusionbrief-synthetic-scenario.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
-  return <div className="scenario-shell"><header className="scenario-header"><a className="brand" href={publicResource('')}><BrandMark/><span>FUSIONBRIEF</span></a><span>다중출처 수집·교차검증·인텔 리포트</span><a href={showcase?'https://specifies-cheque-synthetic-injection.trycloudflare.com':'/?presentation=query'}>실제 공개정보 분석 ↗</a></header>
-    <div className="scenario-provenance"><span className="scenario-label">합성 시나리오</span><p>판별 신호가 있는 가상 입력으로 분석 기능을 검증합니다. 실제 사건·운항·공식 경보에 관한 보고서가 아닙니다.</p></div>
-    <main><section id="scenario-question" className="scenario-question"><p className="eyebrow">SCENARIO ANALYSIS · 동해 운항 영향</p><h1>자료가 합쳐지면,<br/>어떤 판단이 달라지는가.</h1><label htmlFor="scenario-query">시연 질문</label><textarea id="scenario-query" readOnly value={data.question} rows={2}/><div><button className="primary-button" onClick={()=>setStarted(true)}>{started?'시나리오 다시 계산':'합성 시나리오 분석 실행'}</button><span>합성 입력 20개체 · 경보 / 항공 / 선박 / 기상 · 규칙 기반 재현 분석</span></div></section>
-    {result?<><nav className="scenario-nav" aria-label="시나리오 보고서 이동"><span className="scenario-label">합성 시나리오</span><a href="#scenario-conclusion">핵심 판단</a><a href="#scenario-map">전후 항적</a><a href="#scenario-checks">교차검증</a><a href="#scenario-conditions">조건 변경</a><a href="#scenario-actions">권장 액션</a><button onClick={()=>window.print()}>인쇄 / PDF</button></nav>
-    <article className="scenario-document"><div className="scenario-document-meta"><span>FUSIONBRIEF / 분석 보고서</span><span>SIM-ES-001 · 판본 {data.version} · 합성 D일 T+12h</span></div>
+  return <section id="report-synthetic" tabIndex={-1} className="scenario-shell scenario-embedded">
+    <div className="scenario-provenance"><span className="scenario-label">합성 관측 · 조건부 분석</span><p>북한의 동해 시험경보와 운항 우회를 가정한 보강 분석입니다. 아래 합성 근거는 실제 사건의 사실 판단과 구분합니다.</p></div>
+    <div className="scenario-document">
       <section id="scenario-conclusion"><p className="eyebrow">KEY JUDGMENTS</p><h2>동해 제한구역과 민간 운항 영향</h2>
       <div className={`scenario-main-conclusion risk-${result.risk}`}><div><strong>민간 운항 차질 위험 · {RISK_LABELS[result.risk]}</strong><span>근거 신뢰도: {result.confidence==='medium'?'중간':'낮음'} · 합성 시나리오 내</span></div><h3>{result.headline}</h3><p>{result.explanation} {result.activeSourceIds.filter(id=>id!=='SIM-W1').map(id=><span key={id}>{cite(id)}</span>)}</p></div>
       <div className="scenario-risk-scale" aria-label={`민간 운항 차질 위험 ${RISK_LABELS[result.risk]}`}>{RISK_LEVELS.map(level=><div key={level} className={`risk-${level} ${level===result.risk?'selected':''}`}><span>{RISK_LABELS[level]}</span>{level===result.risk?<b>현재 시나리오</b>:null}</div>)}</div>
@@ -66,7 +61,6 @@ export default function SyntheticScenario(){
       <section id="scenario-actions"><p className="eyebrow">RECOMMENDED NEXT ACTIONS</p><h3>결론에서 다음 확인으로</h3><ol className="scenario-actions"><li><div><span>즉시 · 분석가</span><h4>항행 경보 원문과 유효기간 확인</h4><p>항공 FIR NOTAM·해상 NAVAREA의 시각·구역·발신 주체와 연장 여부를 원문으로 대조합니다.</p><small>완료 조건: 구역·발효·만료·변경 이력 일치 확인 / 불일치하면 지속 위험 재평가</small></div></li><li><div><span>30분 내 · 교통 분석 담당</span><h4>동일 표본의 우회 지속 여부 재관측</h4><p>신선한 항적만 비교하고, 이전 경로 복귀·우회 비율·추가 거리 추세를 확인합니다.</p><small>재평가 신호: 우회 감소 또는 제한 연장 / 현재 표본을 전체 항공·해상 운항으로 확대 해석하지 않음</small></div></li><li><div><span>병행 · 분석가</span><h4>기상·관제·통상 훈련이라는 경쟁 설명 대조</h4><p>{options.weather?'동시간 강풍을 포함해 우회 원인을 다시 검토합니다.':'기상 자료와 관제 공지를 확보해 시험경보 외의 설명을 검토합니다.'} 미사일 발사 실행은 별도 탐지·발표 자료로 확인합니다.</p><small>완료 조건: 경쟁 원인의 공간·시각 대조 / 공격 의도 판단에는 별도 근거 필요</small></div></li></ol>
       <div className="scenario-outlook"><strong>향후 24시간 전망 · 조건부</strong><p>{options.notice&&options.tracks?'경보가 유지되는 잔여 12시간에는 우회가 지속될 수 있습니다. T+24h 만료 후 항로가 복귀하면 운항 위험을 낮추고, 경보가 연장되면 영향 기간을 다시 평가합니다.':'경보 유효기간 또는 전후 관측이 빠져 영향 지속 시간을 판단하기 어렵습니다. 먼저 누락된 원문·항적을 확인합니다.'}</p></div></section>
       <section className="scenario-method"><details><summary>분석 방법·실행 기록·합성 입력</summary><p>미리 생성한 합성 입력에 좌표 교차·수신 최신성·구면 거리·원출처 중복·제품 위험 행렬을 실제로 계산합니다. 새로운 공개 수집이나 LLM 호출을 수행한 것으로 표시하지 않습니다.</p><p>운항 영향 지표: 양쪽 표본에서 절반 이상 우회가 관측되고 경보가 발효 중이면 가능성 ‘높음’ × 영향 ‘중대’로 분류합니다. 입력·기준은 이 시연을 위한 제품 정의이며 검증된 운항 예측 모델이나 공식 경보가 아닙니다.</p><ol>{result.trace.map(t=><li key={t.stage}><b>{t.stage}</b> · {t.result}</li>)}</ol><button className="secondary-button" onClick={download}>합성 입력·분석 결과 JSON 저장</button></details></section>
-    </article></>:<section className="scenario-start-explanation"><h2>한 출처로는 보이지 않는 운항 영향을 찾습니다.</h2><p>가상 경보는 제한 계획만 보여줍니다. 항공·선박의 이전·이후 항적을 결합하면 실제 우회와 추가 이동을 계산할 수 있습니다. 오래된 수신과 같은 기사 재전파는 분리하고, 기상 반대 근거로 원인 판단을 검토합니다.</p><div><span>경보 원문</span><b>＋</b><span>전후 항공 항적</span><b>＋</b><span>전후 선박 항적</span><b>→</b><strong>운항 영향 · 위험도 · 다음 액션</strong></div></section>}
-    </main>{sourceId&&result?<EvidencePanel key={sourceId} sourceId={sourceId} result={result} onClose={()=>setSourceId(undefined)}/>:null}
-  </div>;
+    </div>{sourceId?<EvidencePanel key={sourceId} sourceId={sourceId} result={result} onClose={()=>setSourceId(undefined)}/>:null}
+  </section>;
 }

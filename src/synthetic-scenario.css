@@ -4,3 +4,5 @@
 .scenario-entry{font-size:11px;color:#687f90;text-decoration:none;margin-left:auto;white-space:nowrap}
 .scenario-knowledge-graph{height:440px;width:100%;border:1px solid #c9d9e3;border-radius:4px;background:#fafcfd}.scenario-kg-help{font-size:11px!important;color:#627d90}.scenario-kg-selection{padding:12px 16px;background:#f2f7fa;border-left:3px solid #628ba5;margin-top:12px}.scenario-kg-selection strong{font-size:13px}.scenario-kg-selection p{font-size:12px;margin:6px 0 0}.scenario-knowledge-graph .react-flow__node:focus{outline:2px solid #315f82}.scenario-knowledge-graph .react-flow__controls-button{background:white;color:#31516a}
 .scenario-evidence-graph{width:1240px;max-width:94vw}.scenario-proof-graph>.scenario-knowledge-graph{padding:0;text-align:left}
+
+.scenario-embedded{min-height:0;background:transparent;margin:32px 0;color:inherit}.scenario-embedded .scenario-provenance{padding:12px 16px;border:1px solid #e4d6bc;align-items:flex-start}.scenario-embedded .scenario-document{padding:0;border:0;box-shadow:none;background:transparent}.scenario-embedded .scenario-document h2{font-size:23px}.scenario-embedded #scenario-conclusion{margin-top:20px}
