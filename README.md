@@ -77,3 +77,10 @@ npm run build:showcase
 공개 자료만 사용합니다. 북한 발신 매체 24종과 공개 보존본을 탐색 대상으로 두되 모든 발행물의 완전한 수집을 보장하지 않습니다. 상용 AIS/ADS-B 실시간 피드와 상용 고해상도 영상은 미연결입니다. 관측 공백을 부재 증거로 사용하지 않으며, 특허·연구를 실제 배치 근거로 사용하지 않습니다. 조직 인증 기반 공동 승인은 미구현이며 로컬 승인자 이름을 기록합니다. 제품 보고서는 ATP 2-33.4·ODNI ICD 203 공개 분석 원칙을 참고한 양식입니다.
 
 한국어 내레이션은 `ko-KR-SunHiNeural` 신경망 음성으로 합성했습니다. 영상은 Chanwoo Song 채널에 업로드했습니다. 영상과 스크린샷·보고서 PDF는 `output/submission/`에 있습니다. GitHub Pages 경로는 `vite.showcase.config.ts`에서 변경할 수 있습니다.
+
+
+## 파이프라인 아키텍처
+
+![FUSIONBRIEF 파이프라인 아키텍처](output/submission/fusionbrief-pipeline.png)
+
+[수정 가능한 SVG](output/submission/fusionbrief-pipeline.svg)
