@@ -1,0 +1,1427 @@
+{
+  "id": "east-sea-routing-exercise",
+  "version": "1.0",
+  "synthetic": true,
+  "asOfMinute": 720,
+  "question": "북한의 가상 동해 시험경보와 민간 항공·선박 우회를 대조해, 향후 24시간 운항 영향과 권장 추가 액션을 분석해줘.",
+  "zone": {
+    "west": 131,
+    "east": 133,
+    "south": 38,
+    "north": 40,
+    "startMinute": 0,
+    "endMinute": 1440
+  },
+  "tracks": [
+    {
+      "id": "SIM-AIR-01",
+      "kind": "aircraft",
+      "sourceId": "SIM-A1",
+      "baseline": [
+        {
+          "latitude": 39.01,
+          "longitude": 129.2,
+          "minute": -120
+        },
+        {
+          "latitude": 39.01,
+          "longitude": 130.1,
+          "minute": -108
+        },
+        {
+          "latitude": 39.01,
+          "longitude": 131.1,
+          "minute": -96
+        },
+        {
+          "latitude": 39.01,
+          "longitude": 132.2,
+          "minute": -84
+        },
+        {
+          "latitude": 39.01,
+          "longitude": 133.3,
+          "minute": -72
+        },
+        {
+          "latitude": 39.01,
+          "longitude": 133.8,
+          "minute": -60
+        }
+      ],
+      "observed": [
+        {
+          "longitude": 129.2,
+          "latitude": 39.01,
+          "minute": 660
+        },
+        {
+          "longitude": 130.1,
+          "latitude": 37.8,
+          "minute": 672
+        },
+        {
+          "longitude": 131.1,
+          "latitude": 37.5,
+          "minute": 684
+        },
+        {
+          "longitude": 132.2,
+          "latitude": 37.5,
+          "minute": 696
+        },
+        {
+          "longitude": 133.3,
+          "latitude": 37.8,
+          "minute": 708
+        },
+        {
+          "longitude": 133.8,
+          "latitude": 39.01,
+          "minute": 720
+        }
+      ]
+    },
+    {
+      "id": "SIM-AIR-02",
+      "kind": "aircraft",
+      "sourceId": "SIM-A1",
+      "baseline": [
+        {
+          "latitude": 39.190000000000005,
+          "longitude": 129.2,
+          "minute": -120
+        },
+        {
+          "latitude": 39.190000000000005,
+          "longitude": 130.1,
+          "minute": -108
+        },
+        {
+          "latitude": 39.190000000000005,
+          "longitude": 131.1,
+          "minute": -96
+        },
+        {
+          "latitude": 39.190000000000005,
+          "longitude": 132.2,
+          "minute": -84
+        },
+        {
+          "latitude": 39.190000000000005,
+          "longitude": 133.3,
+          "minute": -72
+        },
+        {
+          "latitude": 39.190000000000005,
+          "longitude": 133.8,
+          "minute": -60
+        }
+      ],
+      "observed": [
+        {
+          "longitude": 129.2,
+          "latitude": 39.190000000000005,
+          "minute": 660
+        },
+        {
+          "longitude": 130.1,
+          "latitude": 37.8,
+          "minute": 672
+        },
+        {
+          "longitude": 131.1,
+          "latitude": 37.5,
+          "minute": 684
+        },
+        {
+          "longitude": 132.2,
+          "latitude": 37.5,
+          "minute": 696
+        },
+        {
+          "longitude": 133.3,
+          "latitude": 37.8,
+          "minute": 708
+        },
+        {
+          "longitude": 133.8,
+          "latitude": 39.190000000000005,
+          "minute": 720
+        }
+      ]
+    },
+    {
+      "id": "SIM-AIR-03",
+      "kind": "aircraft",
+      "sourceId": "SIM-A1",
+      "baseline": [
+        {
+          "latitude": 39.370000000000005,
+          "longitude": 129.2,
+          "minute": -120
+        },
+        {
+          "latitude": 39.370000000000005,
+          "longitude": 130.1,
+          "minute": -108
+        },
+        {
+          "latitude": 39.370000000000005,
+          "longitude": 131.1,
+          "minute": -96
+        },
+        {
+          "latitude": 39.370000000000005,
+          "longitude": 132.2,
+          "minute": -84
+        },
+        {
+          "latitude": 39.370000000000005,
+          "longitude": 133.3,
+          "minute": -72
+        },
+        {
+          "latitude": 39.370000000000005,
+          "longitude": 133.8,
+          "minute": -60
+        }
+      ],
+      "observed": [
+        {
+          "longitude": 129.2,
+          "latitude": 39.370000000000005,
+          "minute": 660
+        },
+        {
+          "longitude": 130.1,
+          "latitude": 37.8,
+          "minute": 672
+        },
+        {
+          "longitude": 131.1,
+          "latitude": 37.5,
+          "minute": 684
+        },
+        {
+          "longitude": 132.2,
+          "latitude": 37.5,
+          "minute": 696
+        },
+        {
+          "longitude": 133.3,
+          "latitude": 37.8,
+          "minute": 708
+        },
+        {
+          "longitude": 133.8,
+          "latitude": 39.370000000000005,
+          "minute": 720
+        }
+      ]
+    },
+    {
+      "id": "SIM-AIR-04",
+      "kind": "aircraft",
+      "sourceId": "SIM-A1",
+      "baseline": [
+        {
+          "latitude": 38.83,
+          "longitude": 129.2,
+          "minute": -120
+        },
+        {
+          "latitude": 38.83,
+          "longitude": 130.1,
+          "minute": -108
+        },
+        {
+          "latitude": 38.83,
+          "longitude": 131.1,
+          "minute": -96
+        },
+        {
+          "latitude": 38.83,
+          "longitude": 132.2,
+          "minute": -84
+        },
+        {
+          "latitude": 38.83,
+          "longitude": 133.3,
+          "minute": -72
+        },
+        {
+          "latitude": 38.83,
+          "longitude": 133.8,
+          "minute": -60
+        }
+      ],
+      "observed": [
+        {
+          "longitude": 129.2,
+          "latitude": 38.83,
+          "minute": 660
+        },
+        {
+          "longitude": 130.1,
+          "latitude": 37.8,
+          "minute": 672
+        },
+        {
+          "longitude": 131.1,
+          "latitude": 37.5,
+          "minute": 684
+        },
+        {
+          "longitude": 132.2,
+          "latitude": 37.5,
+          "minute": 696
+        },
+        {
+          "longitude": 133.3,
+          "latitude": 37.8,
+          "minute": 708
+        },
+        {
+          "longitude": 133.8,
+          "latitude": 38.83,
+          "minute": 720
+        }
+      ]
+    },
+    {
+      "id": "SIM-AIR-05",
+      "kind": "aircraft",
+      "sourceId": "SIM-A1",
+      "baseline": [
+        {
+          "latitude": 39.01,
+          "longitude": 129.2,
+          "minute": -120
+        },
+        {
+          "latitude": 39.01,
+          "longitude": 130.1,
+          "minute": -108
+        },
+        {
+          "latitude": 39.01,
+          "longitude": 131.1,
+          "minute": -96
+        },
+        {
+          "latitude": 39.01,
+          "longitude": 132.2,
+          "minute": -84
+        },
+        {
+          "latitude": 39.01,
+          "longitude": 133.3,
+          "minute": -72
+        },
+        {
+          "latitude": 39.01,
+          "longitude": 133.8,
+          "minute": -60
+        }
+      ],
+      "observed": [
+        {
+          "longitude": 129.2,
+          "latitude": 39.01,
+          "minute": 660
+        },
+        {
+          "longitude": 130.1,
+          "latitude": 37.8,
+          "minute": 672
+        },
+        {
+          "longitude": 131.1,
+          "latitude": 37.5,
+          "minute": 684
+        },
+        {
+          "longitude": 132.2,
+          "latitude": 37.5,
+          "minute": 696
+        },
+        {
+          "longitude": 133.3,
+          "latitude": 37.8,
+          "minute": 708
+        },
+        {
+          "longitude": 133.8,
+          "latitude": 39.01,
+          "minute": 720
+        }
+      ]
+    },
+    {
+      "id": "SIM-AIR-06",
+      "kind": "aircraft",
+      "sourceId": "SIM-A1",
+      "baseline": [
+        {
+          "latitude": 39.190000000000005,
+          "longitude": 129.2,
+          "minute": -120
+        },
+        {
+          "latitude": 39.190000000000005,
+          "longitude": 130.1,
+          "minute": -108
+        },
+        {
+          "latitude": 39.190000000000005,
+          "longitude": 131.1,
+          "minute": -96
+        },
+        {
+          "latitude": 39.190000000000005,
+          "longitude": 132.2,
+          "minute": -84
+        },
+        {
+          "latitude": 39.190000000000005,
+          "longitude": 133.3,
+          "minute": -72
+        },
+        {
+          "latitude": 39.190000000000005,
+          "longitude": 133.8,
+          "minute": -60
+        }
+      ],
+      "observed": [
+        {
+          "longitude": 129.2,
+          "latitude": 39.190000000000005,
+          "minute": 660
+        },
+        {
+          "longitude": 130.1,
+          "latitude": 37.8,
+          "minute": 672
+        },
+        {
+          "longitude": 131.1,
+          "latitude": 37.5,
+          "minute": 684
+        },
+        {
+          "longitude": 132.2,
+          "latitude": 37.5,
+          "minute": 696
+        },
+        {
+          "longitude": 133.3,
+          "latitude": 37.8,
+          "minute": 708
+        },
+        {
+          "longitude": 133.8,
+          "latitude": 39.190000000000005,
+          "minute": 720
+        }
+      ]
+    },
+    {
+      "id": "SIM-AIR-07",
+      "kind": "aircraft",
+      "sourceId": "SIM-A1",
+      "baseline": [
+        {
+          "latitude": 39.370000000000005,
+          "longitude": 129.2,
+          "minute": -120
+        },
+        {
+          "latitude": 39.370000000000005,
+          "longitude": 130.1,
+          "minute": -108
+        },
+        {
+          "latitude": 39.370000000000005,
+          "longitude": 131.1,
+          "minute": -96
+        },
+        {
+          "latitude": 39.370000000000005,
+          "longitude": 132.2,
+          "minute": -84
+        },
+        {
+          "latitude": 39.370000000000005,
+          "longitude": 133.3,
+          "minute": -72
+        },
+        {
+          "latitude": 39.370000000000005,
+          "longitude": 133.8,
+          "minute": -60
+        }
+      ],
+      "observed": [
+        {
+          "longitude": 129.2,
+          "latitude": 39.370000000000005,
+          "minute": 660
+        },
+        {
+          "longitude": 130.1,
+          "latitude": 39.370000000000005,
+          "minute": 672
+        },
+        {
+          "longitude": 131.1,
+          "latitude": 39.370000000000005,
+          "minute": 684
+        },
+        {
+          "longitude": 132.2,
+          "latitude": 39.370000000000005,
+          "minute": 696
+        },
+        {
+          "longitude": 133.3,
+          "latitude": 39.370000000000005,
+          "minute": 708
+        },
+        {
+          "longitude": 133.8,
+          "latitude": 39.370000000000005,
+          "minute": 720
+        }
+      ]
+    },
+    {
+      "id": "SIM-AIR-08",
+      "kind": "aircraft",
+      "sourceId": "SIM-A1",
+      "baseline": [
+        {
+          "latitude": 38.83,
+          "longitude": 129.2,
+          "minute": -120
+        },
+        {
+          "latitude": 38.83,
+          "longitude": 130.1,
+          "minute": -108
+        },
+        {
+          "latitude": 38.83,
+          "longitude": 131.1,
+          "minute": -96
+        },
+        {
+          "latitude": 38.83,
+          "longitude": 132.2,
+          "minute": -84
+        },
+        {
+          "latitude": 38.83,
+          "longitude": 133.3,
+          "minute": -72
+        },
+        {
+          "latitude": 38.83,
+          "longitude": 133.8,
+          "minute": -60
+        }
+      ],
+      "observed": [
+        {
+          "longitude": 129.2,
+          "latitude": 38.83,
+          "minute": 660
+        },
+        {
+          "longitude": 130.1,
+          "latitude": 38.83,
+          "minute": 672
+        },
+        {
+          "longitude": 131.1,
+          "latitude": 38.83,
+          "minute": 684
+        },
+        {
+          "longitude": 132.2,
+          "latitude": 38.83,
+          "minute": 696
+        },
+        {
+          "longitude": 133.3,
+          "latitude": 38.83,
+          "minute": 708
+        },
+        {
+          "longitude": 133.8,
+          "latitude": 38.83,
+          "minute": 720
+        }
+      ]
+    },
+    {
+      "id": "SIM-SEA-01",
+      "kind": "vessel",
+      "sourceId": "SIM-M1",
+      "baseline": [
+        {
+          "latitude": 38.51,
+          "longitude": 129.2,
+          "minute": -1440
+        },
+        {
+          "latitude": 38.51,
+          "longitude": 130.1,
+          "minute": -1296
+        },
+        {
+          "latitude": 38.51,
+          "longitude": 131.1,
+          "minute": -1152
+        },
+        {
+          "latitude": 38.51,
+          "longitude": 132.2,
+          "minute": -1008
+        },
+        {
+          "latitude": 38.51,
+          "longitude": 133.3,
+          "minute": -864
+        },
+        {
+          "latitude": 38.51,
+          "longitude": 133.8,
+          "minute": -720
+        }
+      ],
+      "observed": [
+        {
+          "longitude": 129.2,
+          "latitude": 38.51,
+          "minute": 0
+        },
+        {
+          "longitude": 130.1,
+          "latitude": 37.8,
+          "minute": 144
+        },
+        {
+          "longitude": 131.1,
+          "latitude": 37.5,
+          "minute": 288
+        },
+        {
+          "longitude": 132.2,
+          "latitude": 37.5,
+          "minute": 432
+        },
+        {
+          "longitude": 133.3,
+          "latitude": 37.8,
+          "minute": 576
+        },
+        {
+          "longitude": 133.8,
+          "latitude": 38.51,
+          "minute": 720
+        }
+      ]
+    },
+    {
+      "id": "SIM-SEA-02",
+      "kind": "vessel",
+      "sourceId": "SIM-M1",
+      "baseline": [
+        {
+          "latitude": 38.690000000000005,
+          "longitude": 129.2,
+          "minute": -1440
+        },
+        {
+          "latitude": 38.690000000000005,
+          "longitude": 130.1,
+          "minute": -1296
+        },
+        {
+          "latitude": 38.690000000000005,
+          "longitude": 131.1,
+          "minute": -1152
+        },
+        {
+          "latitude": 38.690000000000005,
+          "longitude": 132.2,
+          "minute": -1008
+        },
+        {
+          "latitude": 38.690000000000005,
+          "longitude": 133.3,
+          "minute": -864
+        },
+        {
+          "latitude": 38.690000000000005,
+          "longitude": 133.8,
+          "minute": -720
+        }
+      ],
+      "observed": [
+        {
+          "longitude": 129.2,
+          "latitude": 38.690000000000005,
+          "minute": 0
+        },
+        {
+          "longitude": 130.1,
+          "latitude": 37.8,
+          "minute": 144
+        },
+        {
+          "longitude": 131.1,
+          "latitude": 37.5,
+          "minute": 288
+        },
+        {
+          "longitude": 132.2,
+          "latitude": 37.5,
+          "minute": 432
+        },
+        {
+          "longitude": 133.3,
+          "latitude": 37.8,
+          "minute": 576
+        },
+        {
+          "longitude": 133.8,
+          "latitude": 38.690000000000005,
+          "minute": 720
+        }
+      ]
+    },
+    {
+      "id": "SIM-SEA-03",
+      "kind": "vessel",
+      "sourceId": "SIM-M1",
+      "baseline": [
+        {
+          "latitude": 38.870000000000005,
+          "longitude": 129.2,
+          "minute": -1440
+        },
+        {
+          "latitude": 38.870000000000005,
+          "longitude": 130.1,
+          "minute": -1296
+        },
+        {
+          "latitude": 38.870000000000005,
+          "longitude": 131.1,
+          "minute": -1152
+        },
+        {
+          "latitude": 38.870000000000005,
+          "longitude": 132.2,
+          "minute": -1008
+        },
+        {
+          "latitude": 38.870000000000005,
+          "longitude": 133.3,
+          "minute": -864
+        },
+        {
+          "latitude": 38.870000000000005,
+          "longitude": 133.8,
+          "minute": -720
+        }
+      ],
+      "observed": [
+        {
+          "longitude": 129.2,
+          "latitude": 38.870000000000005,
+          "minute": 0
+        },
+        {
+          "longitude": 130.1,
+          "latitude": 37.8,
+          "minute": 144
+        },
+        {
+          "longitude": 131.1,
+          "latitude": 37.5,
+          "minute": 288
+        },
+        {
+          "longitude": 132.2,
+          "latitude": 37.5,
+          "minute": 432
+        },
+        {
+          "longitude": 133.3,
+          "latitude": 37.8,
+          "minute": 576
+        },
+        {
+          "longitude": 133.8,
+          "latitude": 38.870000000000005,
+          "minute": 720
+        }
+      ]
+    },
+    {
+      "id": "SIM-SEA-04",
+      "kind": "vessel",
+      "sourceId": "SIM-M1",
+      "baseline": [
+        {
+          "latitude": 38.33,
+          "longitude": 129.2,
+          "minute": -1440
+        },
+        {
+          "latitude": 38.33,
+          "longitude": 130.1,
+          "minute": -1296
+        },
+        {
+          "latitude": 38.33,
+          "longitude": 131.1,
+          "minute": -1152
+        },
+        {
+          "latitude": 38.33,
+          "longitude": 132.2,
+          "minute": -1008
+        },
+        {
+          "latitude": 38.33,
+          "longitude": 133.3,
+          "minute": -864
+        },
+        {
+          "latitude": 38.33,
+          "longitude": 133.8,
+          "minute": -720
+        }
+      ],
+      "observed": [
+        {
+          "longitude": 129.2,
+          "latitude": 38.33,
+          "minute": 0
+        },
+        {
+          "longitude": 130.1,
+          "latitude": 37.8,
+          "minute": 144
+        },
+        {
+          "longitude": 131.1,
+          "latitude": 37.5,
+          "minute": 288
+        },
+        {
+          "longitude": 132.2,
+          "latitude": 37.5,
+          "minute": 432
+        },
+        {
+          "longitude": 133.3,
+          "latitude": 37.8,
+          "minute": 576
+        },
+        {
+          "longitude": 133.8,
+          "latitude": 38.33,
+          "minute": 720
+        }
+      ]
+    },
+    {
+      "id": "SIM-SEA-05",
+      "kind": "vessel",
+      "sourceId": "SIM-M1",
+      "baseline": [
+        {
+          "latitude": 38.51,
+          "longitude": 129.2,
+          "minute": -1440
+        },
+        {
+          "latitude": 38.51,
+          "longitude": 130.1,
+          "minute": -1296
+        },
+        {
+          "latitude": 38.51,
+          "longitude": 131.1,
+          "minute": -1152
+        },
+        {
+          "latitude": 38.51,
+          "longitude": 132.2,
+          "minute": -1008
+        },
+        {
+          "latitude": 38.51,
+          "longitude": 133.3,
+          "minute": -864
+        },
+        {
+          "latitude": 38.51,
+          "longitude": 133.8,
+          "minute": -720
+        }
+      ],
+      "observed": [
+        {
+          "longitude": 129.2,
+          "latitude": 38.51,
+          "minute": 0
+        },
+        {
+          "longitude": 130.1,
+          "latitude": 37.8,
+          "minute": 144
+        },
+        {
+          "longitude": 131.1,
+          "latitude": 37.5,
+          "minute": 288
+        },
+        {
+          "longitude": 132.2,
+          "latitude": 37.5,
+          "minute": 432
+        },
+        {
+          "longitude": 133.3,
+          "latitude": 37.8,
+          "minute": 576
+        },
+        {
+          "longitude": 133.8,
+          "latitude": 38.51,
+          "minute": 720
+        }
+      ]
+    },
+    {
+      "id": "SIM-SEA-06",
+      "kind": "vessel",
+      "sourceId": "SIM-M1",
+      "baseline": [
+        {
+          "latitude": 38.690000000000005,
+          "longitude": 129.2,
+          "minute": -1440
+        },
+        {
+          "latitude": 38.690000000000005,
+          "longitude": 130.1,
+          "minute": -1296
+        },
+        {
+          "latitude": 38.690000000000005,
+          "longitude": 131.1,
+          "minute": -1152
+        },
+        {
+          "latitude": 38.690000000000005,
+          "longitude": 132.2,
+          "minute": -1008
+        },
+        {
+          "latitude": 38.690000000000005,
+          "longitude": 133.3,
+          "minute": -864
+        },
+        {
+          "latitude": 38.690000000000005,
+          "longitude": 133.8,
+          "minute": -720
+        }
+      ],
+      "observed": [
+        {
+          "longitude": 129.2,
+          "latitude": 38.690000000000005,
+          "minute": 0
+        },
+        {
+          "longitude": 130.1,
+          "latitude": 37.8,
+          "minute": 144
+        },
+        {
+          "longitude": 131.1,
+          "latitude": 37.5,
+          "minute": 288
+        },
+        {
+          "longitude": 132.2,
+          "latitude": 37.5,
+          "minute": 432
+        },
+        {
+          "longitude": 133.3,
+          "latitude": 37.8,
+          "minute": 576
+        },
+        {
+          "longitude": 133.8,
+          "latitude": 38.690000000000005,
+          "minute": 720
+        }
+      ]
+    },
+    {
+      "id": "SIM-SEA-07",
+      "kind": "vessel",
+      "sourceId": "SIM-M1",
+      "baseline": [
+        {
+          "latitude": 38.870000000000005,
+          "longitude": 129.2,
+          "minute": -1440
+        },
+        {
+          "latitude": 38.870000000000005,
+          "longitude": 130.1,
+          "minute": -1296
+        },
+        {
+          "latitude": 38.870000000000005,
+          "longitude": 131.1,
+          "minute": -1152
+        },
+        {
+          "latitude": 38.870000000000005,
+          "longitude": 132.2,
+          "minute": -1008
+        },
+        {
+          "latitude": 38.870000000000005,
+          "longitude": 133.3,
+          "minute": -864
+        },
+        {
+          "latitude": 38.870000000000005,
+          "longitude": 133.8,
+          "minute": -720
+        }
+      ],
+      "observed": [
+        {
+          "longitude": 129.2,
+          "latitude": 38.870000000000005,
+          "minute": 0
+        },
+        {
+          "longitude": 130.1,
+          "latitude": 37.8,
+          "minute": 144
+        },
+        {
+          "longitude": 131.1,
+          "latitude": 37.5,
+          "minute": 288
+        },
+        {
+          "longitude": 132.2,
+          "latitude": 37.5,
+          "minute": 432
+        },
+        {
+          "longitude": 133.3,
+          "latitude": 37.8,
+          "minute": 576
+        },
+        {
+          "longitude": 133.8,
+          "latitude": 38.870000000000005,
+          "minute": 720
+        }
+      ]
+    },
+    {
+      "id": "SIM-SEA-08",
+      "kind": "vessel",
+      "sourceId": "SIM-M1",
+      "baseline": [
+        {
+          "latitude": 38.33,
+          "longitude": 129.2,
+          "minute": -1440
+        },
+        {
+          "latitude": 38.33,
+          "longitude": 130.1,
+          "minute": -1296
+        },
+        {
+          "latitude": 38.33,
+          "longitude": 131.1,
+          "minute": -1152
+        },
+        {
+          "latitude": 38.33,
+          "longitude": 132.2,
+          "minute": -1008
+        },
+        {
+          "latitude": 38.33,
+          "longitude": 133.3,
+          "minute": -864
+        },
+        {
+          "latitude": 38.33,
+          "longitude": 133.8,
+          "minute": -720
+        }
+      ],
+      "observed": [
+        {
+          "longitude": 129.2,
+          "latitude": 38.33,
+          "minute": 0
+        },
+        {
+          "longitude": 130.1,
+          "latitude": 37.8,
+          "minute": 144
+        },
+        {
+          "longitude": 131.1,
+          "latitude": 37.5,
+          "minute": 288
+        },
+        {
+          "longitude": 132.2,
+          "latitude": 37.5,
+          "minute": 432
+        },
+        {
+          "longitude": 133.3,
+          "latitude": 37.8,
+          "minute": 576
+        },
+        {
+          "longitude": 133.8,
+          "latitude": 38.33,
+          "minute": 720
+        }
+      ]
+    },
+    {
+      "id": "SIM-SEA-09",
+      "kind": "vessel",
+      "sourceId": "SIM-M1",
+      "baseline": [
+        {
+          "latitude": 38.51,
+          "longitude": 129.2,
+          "minute": -1440
+        },
+        {
+          "latitude": 38.51,
+          "longitude": 130.1,
+          "minute": -1296
+        },
+        {
+          "latitude": 38.51,
+          "longitude": 131.1,
+          "minute": -1152
+        },
+        {
+          "latitude": 38.51,
+          "longitude": 132.2,
+          "minute": -1008
+        },
+        {
+          "latitude": 38.51,
+          "longitude": 133.3,
+          "minute": -864
+        },
+        {
+          "latitude": 38.51,
+          "longitude": 133.8,
+          "minute": -720
+        }
+      ],
+      "observed": [
+        {
+          "longitude": 129.2,
+          "latitude": 38.51,
+          "minute": 0
+        },
+        {
+          "longitude": 130.1,
+          "latitude": 37.8,
+          "minute": 144
+        },
+        {
+          "longitude": 131.1,
+          "latitude": 37.5,
+          "minute": 288
+        },
+        {
+          "longitude": 132.2,
+          "latitude": 37.5,
+          "minute": 432
+        },
+        {
+          "longitude": 133.3,
+          "latitude": 37.8,
+          "minute": 576
+        },
+        {
+          "longitude": 133.8,
+          "latitude": 38.51,
+          "minute": 720
+        }
+      ]
+    },
+    {
+      "id": "SIM-SEA-10",
+      "kind": "vessel",
+      "sourceId": "SIM-M1",
+      "baseline": [
+        {
+          "latitude": 38.690000000000005,
+          "longitude": 129.2,
+          "minute": -1440
+        },
+        {
+          "latitude": 38.690000000000005,
+          "longitude": 130.1,
+          "minute": -1296
+        },
+        {
+          "latitude": 38.690000000000005,
+          "longitude": 131.1,
+          "minute": -1152
+        },
+        {
+          "latitude": 38.690000000000005,
+          "longitude": 132.2,
+          "minute": -1008
+        },
+        {
+          "latitude": 38.690000000000005,
+          "longitude": 133.3,
+          "minute": -864
+        },
+        {
+          "latitude": 38.690000000000005,
+          "longitude": 133.8,
+          "minute": -720
+        }
+      ],
+      "observed": [
+        {
+          "longitude": 129.2,
+          "latitude": 38.690000000000005,
+          "minute": 0
+        },
+        {
+          "longitude": 130.1,
+          "latitude": 38.690000000000005,
+          "minute": 144
+        },
+        {
+          "longitude": 131.1,
+          "latitude": 38.690000000000005,
+          "minute": 288
+        },
+        {
+          "longitude": 132.2,
+          "latitude": 38.690000000000005,
+          "minute": 432
+        },
+        {
+          "longitude": 133.3,
+          "latitude": 38.690000000000005,
+          "minute": 576
+        },
+        {
+          "longitude": 133.8,
+          "latitude": 38.690000000000005,
+          "minute": 720
+        }
+      ]
+    },
+    {
+      "id": "SIM-SEA-11",
+      "kind": "vessel",
+      "sourceId": "SIM-M1",
+      "baseline": [
+        {
+          "latitude": 38.870000000000005,
+          "longitude": 129.2,
+          "minute": -1440
+        },
+        {
+          "latitude": 38.870000000000005,
+          "longitude": 130.1,
+          "minute": -1296
+        },
+        {
+          "latitude": 38.870000000000005,
+          "longitude": 131.1,
+          "minute": -1152
+        },
+        {
+          "latitude": 38.870000000000005,
+          "longitude": 132.2,
+          "minute": -1008
+        },
+        {
+          "latitude": 38.870000000000005,
+          "longitude": 133.3,
+          "minute": -864
+        },
+        {
+          "latitude": 38.870000000000005,
+          "longitude": 133.8,
+          "minute": -720
+        }
+      ],
+      "observed": [
+        {
+          "longitude": 129.2,
+          "latitude": 38.870000000000005,
+          "minute": -3600
+        },
+        {
+          "longitude": 130.1,
+          "latitude": 38.870000000000005,
+          "minute": -3456
+        },
+        {
+          "longitude": 131.1,
+          "latitude": 38.870000000000005,
+          "minute": -3312
+        },
+        {
+          "longitude": 132.2,
+          "latitude": 38.870000000000005,
+          "minute": -3168
+        },
+        {
+          "longitude": 133.3,
+          "latitude": 38.870000000000005,
+          "minute": -3024
+        },
+        {
+          "longitude": 133.8,
+          "latitude": 38.870000000000005,
+          "minute": -2880
+        }
+      ]
+    },
+    {
+      "id": "SIM-SEA-12",
+      "kind": "vessel",
+      "sourceId": "SIM-M1",
+      "baseline": [
+        {
+          "latitude": 38.33,
+          "longitude": 129.2,
+          "minute": -1440
+        },
+        {
+          "latitude": 38.33,
+          "longitude": 130.1,
+          "minute": -1296
+        },
+        {
+          "latitude": 38.33,
+          "longitude": 131.1,
+          "minute": -1152
+        },
+        {
+          "latitude": 38.33,
+          "longitude": 132.2,
+          "minute": -1008
+        },
+        {
+          "latitude": 38.33,
+          "longitude": 133.3,
+          "minute": -864
+        },
+        {
+          "latitude": 38.33,
+          "longitude": 133.8,
+          "minute": -720
+        }
+      ],
+      "observed": [
+        {
+          "longitude": 129.2,
+          "latitude": 38.33,
+          "minute": -3600
+        },
+        {
+          "longitude": 130.1,
+          "latitude": 38.33,
+          "minute": -3456
+        },
+        {
+          "longitude": 131.1,
+          "latitude": 38.33,
+          "minute": -3312
+        },
+        {
+          "longitude": 132.2,
+          "latitude": 38.33,
+          "minute": -3168
+        },
+        {
+          "longitude": 133.3,
+          "latitude": 38.33,
+          "minute": -3024
+        },
+        {
+          "longitude": 133.8,
+          "latitude": 38.33,
+          "minute": -2880
+        }
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "id": "SIM-N1",
+      "title": "가상 항공·해상 공동 제한 경보",
+      "origin": "합성 경보 발신원",
+      "synthetic": true,
+      "body": "[합성 원문] 가상 D일 00:00부터 24:00까지 북위 38–40도, 동경 131–133도 구역에서 시험 활동에 따른 항공·해상 운항 제한을 설정한다. 종료 후 연장 여부는 별도 공지한다. 이 경보는 실제 NOTAM 또는 NAVAREA 고시가 아니다."
+    },
+    {
+      "id": "SIM-A1",
+      "title": "합성 ADS-B 전후 항적",
+      "origin": "합성 항공 관측원",
+      "synthetic": true,
+      "body": "[합성 원문] 항공기 SIM-AIR-01~08의 이전 항로와 경보 발효 후 항적을 보존한다. 위치와 시각은 아래 JSON 레코드가 원본이다. 선별된 관측군이며 전체 운항 모집단이나 실제 항공편을 나타내지 않는다."
+    },
+    {
+      "id": "SIM-M1",
+      "title": "합성 AIS 전후 항적",
+      "origin": "합성 선박 관측원",
+      "synthetic": true,
+      "body": "[합성 원문] 선박 SIM-SEA-01~12의 이전 항로와 관측 항적을 보존한다. 일부 수신은 오래되어 최신성 검사에서 제외해야 한다. 위치와 시각은 아래 JSON 레코드가 원본이다. 실제 MMSI나 선박 이름을 사용하지 않는다."
+    },
+    {
+      "id": "SIM-W1",
+      "title": "합성 기상 반대 근거",
+      "origin": "합성 기상 관측원",
+      "synthetic": true,
+      "body": "[합성 원문] 같은 시각·해역에 강풍과 높은 파고가 발생했다는 경쟁 설명을 가정한다. 이 조건을 채택하면 우회의 원인을 시험경보 하나에 귀속할 수 없다. 실제 기상 관측이 아니다."
+    }
+  ]
+}

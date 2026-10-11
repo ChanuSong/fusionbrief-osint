@@ -205,6 +205,7 @@ export default function App() {
       <header className="topbar">
         <nav aria-label="현재 위치" className="breadcrumb"><span>다중출처 수집·교차검증·인텔 리포트</span><span>/</span>
           <strong>{tab === 'sources' ? '공개 자료' : tab === 'reviews' ? '검토 기록' : analyzing ? '분석 진행' : run && !editing ? `보고서 v${run.version}` : '새 분석'}</strong></nav>
+        <a className="scenario-entry" href="/?scenario=synthetic" target="_blank" rel="noreferrer">합성 시나리오 · 운항 영향 분석 ↗</a>
       </header>
       <div className={`page-content ${!run && !analyzing && tab === 'workspace' ? 'start-page' : ''}`}>
         {heading ? <div className="page-heading">

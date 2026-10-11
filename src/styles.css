@@ -1404,3 +1404,4 @@ body:has(.demo-guide) .page-content { padding-bottom: 240px; }
 
 .intel-collection-tasks { display: grid; gap: 14px; font-size: 13px; line-height: 1.8; }
 .intel-collection-tasks li { padding: 12px 0; border-top: 1px solid var(--line); }
+.topbar .scenario-entry{font-size:11px;color:#687f90;text-decoration:none;margin-left:auto;white-space:nowrap}
