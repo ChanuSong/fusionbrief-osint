@@ -5,9 +5,9 @@
 .risk-critical { --risk-color: #a13636; --risk-background: #fbeaea; }
 .risk-unassessed { --risk-color: #617080; --risk-background: #f0f2f4; }
 .risk-conclusion { margin: 20px 0 14px; padding: 17px 20px; border-left: 4px solid var(--risk-color); background: var(--risk-background); }
-.risk-conclusion > div { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
-.risk-conclusion > div > strong { color: var(--risk-color); font-size: 26px; letter-spacing: -.04em; }
-.risk-conclusion > div > span:last-child { color: #657686; font-size: 12px; }
+.risk-conclusion-heading { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
+.risk-conclusion-heading > strong { color: var(--risk-color); font-size: 26px; letter-spacing: -.04em; }
+.risk-conclusion-heading > span:last-child { color: #657686; font-size: 12px; }
 .risk-conclusion > p { margin: 5px 0; font-weight: 600; }
 .risk-conclusion small { color: #627181; line-height: 1.75; }
 .risk-chart-section .risk-scope { font-size: 12px; color: #657383; line-height: 1.9; margin-bottom: 22px; }
@@ -19,8 +19,12 @@
 .risk-overall .risk-level-label { font-size: 24px; padding: 4px 12px; }
 .risk-scale { display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); gap: 4px; padding: 0 0 24px; margin: 14px 0 20px; }
 .risk-scale-segment { position: relative; padding: 7px 3px; min-height: 24px; font-size: 11px; text-align: center; color: var(--risk-color); background: var(--risk-background); border-top: 4px solid var(--risk-color); }
-.risk-scale-segment.is-selected { outline: 2px solid var(--risk-color); outline-offset: 2px; font-weight: 700; }
+.risk-scale-segment.is-selected { outline: 2px solid var(--risk-color); outline-offset: 2px; font-weight: 700; background: var(--risk-color); color: #fff; }
 .risk-scale-segment b { position: absolute; left: 50%; top: 100%; transform: translateX(-50%); font-size: 10px; margin-top: 6px; white-space: nowrap; }
+.risk-scale-segment.is-selected b { color: var(--risk-color); }
+.risk-conclusion .risk-scale { margin: 18px 0 0; padding-bottom: 24px; gap: 6px; }
+.risk-conclusion .risk-scale-segment { padding: 9px 3px; font-size: 12px; }
+.risk-conclusion .risk-scale-segment b { font-size: 11px; }
 .risk-chart-grid { display: grid; grid-template-columns: 1.05fr 1fr; gap: 26px; align-items: start; margin: 20px 0 30px; }
 .report-document .risk-matrix { width: 100%; border-collapse: collapse; font-size: 11px; }
 .report-document .risk-matrix caption { text-align: left; font-size: 11px; color: #657585; margin-bottom: 10px; }

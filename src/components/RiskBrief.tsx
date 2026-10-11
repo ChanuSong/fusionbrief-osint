@@ -7,7 +7,7 @@ function Citations({ run, ids, onEvidence }: { run: AnalysisRun; ids: string[]; 
   const linked = run.evidence.filter(e => ids.some(id => run.claims.find(c => c.id === id)?.evidenceIds.includes(e.id)));
   return <span className="answer-citations">{linked.map(e => <button key={e.id} onClick={() => onEvidence(e)} aria-label={`위험 평가 인용 ${run.evidence.indexOf(e) + 1} 원문 보기`}>[{run.evidence.indexOf(e) + 1}]</button>)}</span>;
 }
-function RiskScale({ item }: { item: RiskEstimate }) {
+function RiskScale({ item }: { item: Pick<RiskEstimate, 'label' | 'level'> }) {
   return <div className="risk-scale" role="img" aria-label={`${item.label} 위험도 ${RISK_LABELS[item.level]}. 낮음, 주의, 상승, 높음, 매우 높음의 정성적 척도.`}>
     {RISK_LEVELS.map(level => <span key={level} className={`risk-scale-segment risk-${level} ${item.level === level ? 'is-selected' : ''}`}><span>{RISK_LABELS[level]}</span>{item.level === level ? <b aria-hidden="true">현재 평가</b> : null}</span>)}
   </div>;
@@ -18,9 +18,10 @@ export function RiskConclusion({ run }: { run: AnalysisRun }) {
   const ready = risk.verification === 'verified' && run.analysis?.verification === 'verified';
   const level = ready ? risk.overall.level : 'unassessed';
   return <aside className={`risk-conclusion risk-${level}`} aria-label="결론의 위험도">
-    <div><span className="eyebrow">위험도 평가</span><strong>{RISK_LABELS[level]}</strong><span>{risk.horizon}</span></div>
+    <div className="risk-conclusion-heading"><span className="eyebrow">위험도 평가</span><strong>{RISK_LABELS[level]}</strong><span>{risk.horizon}</span></div>
     <p>{ready ? risk.overall.label : '근거가 변경되어 위험 평가의 재검증이 필요합니다.'}</p>
     {ready ? <small>발생 가능성: {LIKELIHOOD_LABELS[risk.overall.likelihood]} · 영향: {IMPACT_LABELS[risk.overall.impact]} · 근거 신뢰도: {CONFIDENCE_LABEL[risk.overall.confidence.level]}</small> : null}
+    <RiskScale item={{ label: risk.overall.label, level }} />
   </aside>;
 }
 export function RiskChart({ run, onEvidence }: { run: AnalysisRun; onEvidence: (e: Evidence) => void }) {
