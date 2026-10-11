@@ -1,3 +1,4 @@
+import { allSourcesRequested } from '../../shared/source-modules.ts';
 import { lazy, Suspense, useEffect, useState, type RefObject } from 'react';
 import { CalendarRange, ChevronDown, Download, GitBranch, Layers, MapPin, Pencil, Printer, ShieldCheck, TriangleAlert } from 'lucide-react';
 import type { AnalysisRun, AnalyzedClaim, Evidence, CriterionBasis, ReportApproval, ReviewInput } from '../../shared/types.ts';
@@ -7,6 +8,7 @@ import { ReportDocument } from './ReportDocument.tsx';
 import { dateTime, dotDate, MODE_LABELS } from '../lib.ts';
 import { reportExportURL } from '../resources.ts';
 import { ApprovalPanel } from './ApprovalPanel.tsx';
+import {JudgmentGraphDialog} from './JudgmentGraphDialog.tsx';
 const KnowledgeGraph = lazy(() => import('./KnowledgeGraph.tsx').then(module => ({ default: module.KnowledgeGraph })));
 const LocationView = lazy(() => import('./LocationView.tsx').then(module => ({ default: module.LocationView })));
 import { SourceComparison } from './SourceComparison.tsx';
@@ -16,7 +18,6 @@ import { OriginFunnel } from './OriginFunnel.tsx';
 import { ReviewPanel } from './ReviewPanel.tsx';
 import { StatusBadge } from './StatusBadge.tsx';
 import { Timeline } from './Timeline.tsx';
-const WisdomGraph = lazy(() => import('./WisdomGraph.tsx').then(module => ({ default: module.WisdomGraph })));
 
 export type EvidenceView = 'origins' | 'graph' | 'timeline' | 'map';
 const CONFIDENCE = { high: '높음', medium: '중간', low: '낮음', undetermined: '판단 유보' };
@@ -28,7 +29,7 @@ export function QuestionBar({ run, locked, onEdit }: { run: AnalysisRun; locked:
     <button className="ghost-button" onClick={onEdit} disabled={locked}><Pencil size={14} />질문 수정</button></div>;
 }
 
-function AnswerView({ run, onEvidence }: { run: AnalysisRun; onEvidence: (evidence: Evidence) => void }) {
+function AnswerView({ run, onEvidence, onGraph }: { run: AnalysisRun; onEvidence: (evidence: Evidence) => void; onGraph:(ids:string[],sentence:string)=>void }) {
   const coverage = run.research?.coverage ?? [];
   const partial = coverage.filter(c => c.status === 'partial').length;
   const missing = coverage.filter(c => c.status === 'missing').length;
@@ -59,6 +60,7 @@ function AnswerView({ run, onEvidence }: { run: AnalysisRun; onEvidence: (eviden
           title={run.sources.find(s => s.id === e.sourceId)?.title} aria-label={`인용 ${run.evidence.indexOf(e) + 1} 원문 보기`}>[{run.evidence.indexOf(e) + 1}]</button>)}
           {(['undetermined', 'low', 'medium', 'high'] as const).filter(level => levels.includes(level)).slice(0, 1).map(level => <span className={`confidence confidence-${level}`} key={level} title={reasons}>
             신뢰도 {CONFIDENCE[level]}</span>)}</span>
+        {claims.length ? <button className="judgment-graph-trigger" onClick={()=>onGraph(paragraph.claimIds,paragraph.text)}><GitBranch size={14}/>근거 연결 보기</button> : null}
       </p>;
       const compact = run.answer?.composition === 'synthesized' && index > 0;
       return <li key={index} className={`${paragraph.kind} ${index === 0 && run.answer?.composition === 'synthesized' ? 'brief-lead' : ''}`}>
@@ -92,9 +94,11 @@ export function ReportView({ run, colors, claim, onSelectClaim, view, onView, on
   readOnly?: boolean;
 }) {
   const [activeSection, setActiveSection] = useState('report-answer');
+  const [graphContext,setGraphContext]=useState<{ids:string[];sentence:string}>();
   useEffect(() => {
     setActiveSection('report-answer');
-    const ids = ['report-answer', 'report-criteria', 'report-behaviors', 'report-chronology', 'report-imagery', 'report-perspectives', 'report-alternatives', 'report-outlook', 'report-collection', 'report-sources', 'report-visuals', 'report-comparison', 'report-wisdom', 'report-evidence', 'report-review'];
+    setGraphContext(undefined);
+    const ids = ['report-answer', 'report-risk', 'report-collection', 'report-criteria', 'report-behaviors', 'report-chronology', 'report-imagery', 'report-perspectives', 'report-alternatives', 'report-outlook', 'report-actions', 'report-sources', 'report-visuals', 'report-comparison', 'report-wisdom', 'report-evidence', 'report-review'];
     const update = () => {
       const sections = ids.map(id => document.getElementById(id)).filter((node): node is HTMLElement => !!node && node.offsetHeight > 0);
       const current = [...sections].reverse().find(node => node.getBoundingClientRect().top <= 180) ?? sections[0];
@@ -124,23 +128,24 @@ export function ReportView({ run, colors, claim, onSelectClaim, view, onView, on
       <div className="report-actions">{run.analysis ? <button className="secondary-button" onClick={() => window.print()}><Printer size={15} />인쇄 / PDF</button> : null}<a className="secondary-button export-button" href={reportExportURL(run.id, 'export')}><Download size={15} />Markdown 내려받기</a></div></div>
     <nav className="report-navigation" aria-label="보고서 섹션">
       <a href="#report-answer" aria-current={activeSection === 'report-answer' ? 'location' : undefined}><span>{run.analysis ? '핵심 판단' : '핵심 답변'}</span></a>
+      {run.risk?.verification === 'verified' && run.analysis?.verification === 'verified' ? <a href="#report-risk" aria-current={activeSection === 'report-risk' ? 'location' : undefined}><span>위험도</span></a> : null}
+      {allSourcesRequested(run.question) || run.simulatedFeeds?.length ? <a href="#report-collection"><span>다중출처</span></a> : null}
       {content.criteria.length ? <a href="#report-criteria" aria-current={activeSection === 'report-criteria' ? 'location' : undefined}><span>기준·사건 대조</span></a> : null}
       {content.observations.length ? <a href="#report-behaviors" aria-current={activeSection === 'report-behaviors' ? 'location' : undefined}><span>주요 관측</span></a> : null}
       {run.analysis?.verification === 'verified' && run.analysis.outlook?.length ? <a href="#report-outlook" aria-current={activeSection === 'report-outlook' ? 'location' : undefined}><span>전망</span></a> : null}
+      {run.risk?.verification === 'verified' && run.risk.actions.length && run.analysis?.verification === 'verified' ? <a href="#report-actions" aria-current={activeSection === 'report-actions' ? 'location' : undefined}><span>권장 액션</span></a> : null}
       {run.analysis && (run.evidence.length || content.criteria.some(c => c.basis.some(b => b.verified))) ? <a href="#report-sources" aria-current={activeSection === 'report-sources' ? 'location' : undefined}><span>주석·출처</span></a> : null}
       {content.visuals ? <a href="#report-visuals" aria-current={activeSection === 'report-visuals' ? 'location' : undefined}><span>시각 브리핑</span></a> : null}
       {content.comparison ? <a href="#report-comparison" aria-current={activeSection === 'report-comparison' ? 'location' : undefined}><span>다국어 대조</span></a> : null}
-      {content.relationships ? <a href="#report-wisdom" aria-current={activeSection === 'report-wisdom' ? 'location' : undefined}><span>사건 관계</span></a> : null}
       {run.claims.length ? <a href="#report-evidence" aria-current={activeSection === 'report-evidence' ? 'location' : undefined}><span>판단별 근거</span></a> : null}
       <a href="#report-review" aria-current={activeSection === 'report-review' ? 'location' : undefined}><ShieldCheck size={14} /><span>검토·승인</span></a>
     </nav>
-    {run.analysis ? <ReportDocument run={run} onEvidence={onEvidence} onBasis={onBasis}><FrameworkAnalysis run={run} onEvidence={onEvidence} onBasis={onBasis} onRevalidate={onRevalidate} busy={locked} /></ReportDocument>
-      : <><DemoProvenance run={run} /><AnswerView run={run} onEvidence={onEvidence} /></>}
+    {run.analysis ? <ReportDocument run={run} onEvidence={onEvidence} onBasis={onBasis}><FrameworkAnalysis run={run} onEvidence={onEvidence} onBasis={onBasis} onRevalidate={onRevalidate} busy={locked} onGraph={(ids,sentence)=>setGraphContext({ids,sentence})}/></ReportDocument>
+      : <><DemoProvenance run={run} /><AnswerView run={run} onEvidence={onEvidence} onGraph={(ids,sentence)=>setGraphContext({ids,sentence})}/></>}
     <div className={run.analysis ? 'report-tools' : undefined}>
     {run.analysis ? <div className="report-tools-heading"><h2>근거 탐색·분석가 검토</h2><p>판단별 원출처를 비교하고 검토 결정을 기록합니다.</p></div> : null}
-    {content.visuals ? <BriefingVisuals key={`visuals-${run.id}-${run.version}`} run={run} onEvidence={onEvidence} onSelectClaim={id => { onSelectClaim(id); onView('origins'); document.getElementById('report-evidence')?.scrollIntoView({ block: 'start' }); }} /> : null}
+    {content.visuals ? <BriefingVisuals key={`visuals-${run.id}-${run.version}`} run={run} onEvidence={onEvidence} onGraph={(ids,sentence)=>setGraphContext({ids,sentence})} onSelectClaim={id => { onSelectClaim(id); onView('origins'); document.getElementById('report-evidence')?.scrollIntoView({ block: 'start' }); }} /> : null}
     {content.comparison ? <SourceComparison key={run.id} run={run} onEvidence={onEvidence} onSelectClaim={id => { onSelectClaim(id); document.getElementById("report-evidence")?.scrollIntoView({ behavior: "smooth" }); }} /> : null}
-    {content.relationships ? <div id="report-wisdom" tabIndex={-1}><Suspense fallback={<p className="graph-loading">관계 그래프 준비 중…</p>}><WisdomGraph key={`${run.id}-${run.version}`} run={run} onEvidence={onEvidence} /></Suspense></div> : null}
     {run.claims.length ? <div id="report-evidence" tabIndex={-1} className="analysis-grid">
       <section className="claims-panel" aria-labelledby="claims-title"><div className="section-heading"><h2 id="claims-title">판단별 근거</h2><span>{run.claims.length}</span></div>
         <div className="claim-list">{run.claims.map((c, i) => <ClaimCard key={c.id} claim={c} index={i} selected={claim?.id === c.id}
@@ -186,5 +191,6 @@ export function ReportView({ run, colors, claim, onSelectClaim, view, onView, on
       <small>보고서 {run.id} · {run.research ? `Cursor CLI / ${run.research.model}` : run.datasetVersion}</small>
     </details> : null}
     </div>
+    {graphContext?<JudgmentGraphDialog key={`${run.id}-${graphContext.sentence}`} run={run} claimIds={graphContext.ids} sentence={graphContext.sentence} colors={colors} onEvidence={onEvidence} onClose={()=>setGraphContext(undefined)}/>:null}
   </div>;
 }

@@ -2,15 +2,15 @@ import { execFile } from 'node:child_process';
 import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-export const cursorBinary = () => process.env.TRACE_CURSOR_BIN || 'agent';
-export const cursorModelName = () => process.env.TRACE_CURSOR_MODEL || 'auto';
-export const cursorSearchModelName = () => process.env.TRACE_SEARCH_MODEL || 'auto';
+export const cursorBinary = () => (process.env.FUSIONBRIEF_CURSOR_BIN ?? process.env.TRACE_CURSOR_BIN) || 'agent';
+export const cursorModelName = () => (process.env.FUSIONBRIEF_CURSOR_MODEL ?? process.env.TRACE_CURSOR_MODEL) || 'auto';
+export const cursorSearchModelName = () => (process.env.FUSIONBRIEF_SEARCH_MODEL ?? process.env.TRACE_SEARCH_MODEL) || 'auto';
 
 /** Only this child process gets its own CLI config. Existing login credentials stay with Cursor. */
 export async function runCursor(prompt: string, options: { webSearch?: boolean; timeout?: number; finishOnLine?: (line: string) => boolean;
   images?: { body: Buffer; contentType: string }[] } = {}): Promise<string> {
   if (Buffer.byteLength(prompt) > 200_000) throw new Error('Cursor 입력 크기 제한 초과');
-  const workspace = await mkdtemp(join(tmpdir(), 'trace-cursor-'));
+  const workspace = await mkdtemp(join(tmpdir(), 'fusionbrief-cursor-'));
   const profile = join(workspace, 'config');
   const imageFiles=(options.images ?? []).slice(0,3).map((image,i)=>`public-image-${i+1}.${image.contentType==='image/png' ? 'png' : image.contentType==='image/webp' ? 'webp' : 'jpg'}`);
   const permissions = { allow: imageFiles.map(file=>`Read(${file})`), deny: ['Shell(*)', ...(imageFiles.length ? ['Read(config/**)','Read(.cursor/**)','Read(/Users/**)','Read(/home/**)','Read(/etc/**)','Read(/proc/**)'] : ['Read(**)','Read(/**)']), 'Write(**)', 'Write(/**)', 'Mcp(*:*)', 'WebFetch(*)'] };
@@ -29,7 +29,7 @@ export async function runCursor(prompt: string, options: { webSearch?: boolean; 
       const child = execFile(cursorBinary(), ['--print', '--mode', 'ask', '--output-format',
       options.webSearch || imageFiles.length ? 'stream-json' : 'json', '--workspace', workspace, '--trust', '--model', options.webSearch ? cursorSearchModelName() : cursorModelName(), prompt], {
       cwd: workspace, env: { ...process.env, CURSOR_CONFIG_DIR: profile, CURSOR_DATA_DIR: join(workspace, 'data') },
-      timeout: options.timeout ?? 180000, maxBuffer: 4_000_000,
+      timeout: options.timeout ?? (Buffer.byteLength(prompt) > 100_000 ? 600000 : 300000), maxBuffer: 4_000_000,
       }, (error, stdout) => {
         // Wait for process shutdown before removing its isolated profile.
         if (completeOutput !== undefined) resolve(completeOutput);

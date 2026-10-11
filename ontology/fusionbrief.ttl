@@ -1,0 +1,34 @@
+@prefix fusionbrief: <urn:fusionbrief:ontology:> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+
+fusionbrief: a owl:Ontology ; rdfs:comment "Criterion-first public intelligence. Unknown does not entail false. Evidence dependence does not entail causality or legal applicability." .
+fusionbrief:DocumentSnapshot a owl:Class ; rdfs:subClassOf prov:Entity .
+fusionbrief:ImageSnapshot a owl:Class ; rdfs:subClassOf prov:Entity ; rdfs:comment "Immutable hash-addressed public image bytes; separate from article text." .
+fusionbrief:VisualObservation a owl:Class ; rdfs:subClassOf prov:Entity ; rdfs:comment "Independently reviewed visible description. Does not entail identity, political authority or unstaged authenticity." .
+fusionbrief:Forecast a owl:Class ; rdfs:subClassOf prov:Entity ; rdfs:comment "Conditional outlook with qualitative likelihood and distinct confidence. Future indicators are conditions, never observed events." .
+fusionbrief:Provision a owl:Class ; rdfs:subClassOf prov:Entity .
+fusionbrief:Criterion a owl:Class ; rdfs:subClassOf prov:Entity .
+fusionbrief:Claim a owl:Class ; rdfs:subClassOf prov:Entity .
+fusionbrief:Quotation a owl:Class ; rdfs:subClassOf prov:Entity .
+fusionbrief:Observation a owl:Class ; rdfs:subClassOf prov:Entity .
+fusionbrief:Assessment a owl:Class ; rdfs:subClassOf prov:Entity .
+fusionbrief:Judgment a owl:Class ; rdfs:subClassOf prov:Entity .
+fusionbrief:ResearchPlan a owl:Class ; rdfs:subClassOf prov:Entity .
+fusionbrief:OriginGroup a owl:Class ; rdfs:subClassOf prov:Entity .
+fusionbrief:ValidationReport a owl:Class ; rdfs:subClassOf prov:Entity ; rdfs:comment "Result of the executable application constraints. Not a claim that a SHACL or OWL reasoner was executed." .
+fusionbrief:Actor a owl:Class ; rdfs:comment "An entity mentioned by a claim; not necessarily the creator of a document or a PROV responsible agent." .
+fusionbrief:Entity a owl:Class ; rdfs:subClassOf prov:Entity .
+fusionbrief:Event a owl:Class ; rdfs:subClassOf prov:Entity ; rdfs:comment "A named event, separate from an executed Observation or an Actor." .
+fusionbrief:hasBasis a owl:ObjectProperty ; rdfs:domain fusionbrief:Criterion ; rdfs:range fusionbrief:Provision .
+fusionbrief:evaluates a owl:ObjectProperty ; rdfs:domain fusionbrief:Assessment ; rdfs:range fusionbrief:Criterion .
+fusionbrief:groundedIn a owl:ObjectProperty ; rdfs:comment "Explicit quotation or claim dependency. Does not imply truth or causality; inspect verification and stance." .
+fusionbrief:tests a owl:ObjectProperty ; rdfs:domain fusionbrief:Observation ; rdfs:range fusionbrief:Criterion .
+fusionbrief:aboutActor a owl:ObjectProperty ; rdfs:domain fusionbrief:Claim ; rdfs:range fusionbrief:Actor .
+fusionbrief:hasOrigin a owl:ObjectProperty ; rdfs:domain fusionbrief:Claim ; rdfs:range fusionbrief:OriginGroup .
+
+fusionbrief:RiskAssessment a owl:Class ; rdfs:subClassOf prov:Entity ; rdfs:comment "Scoped qualitative likelihood and consequence, with separate evidence confidence. Not an official military alert or calibrated probability." .
+fusionbrief:RecommendedAction a owl:Class ; rdfs:subClassOf prov:Entity ; rdfs:comment "Evidence-grounded follow-up proposal with trigger and completion condition. Does not entail execution or authorization." .
+
+fusionbrief:SimulatedFeed a owl:Class ; rdfs:subClassOf prov:Entity ; rdfs:comment "Explicit synthetic demonstration data excluded from real claims, confidence and risk assessments." .

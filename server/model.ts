@@ -59,7 +59,7 @@ export function createCursorModel(execute: (prompt: string) => Promise<string> =
         const issues=error instanceof z.ZodError ? error.issues.map(i=>({path:i.path,message:i.message})) : [{message:'Return complete valid JSON'}];
         prompt=original+'\nFORMAT CORRECTION (one retry): Repeat the SAME image reads and independent task. Keep every string under its maxLength. Do not change verdicts merely to pass schema validation. Return complete JSON.\n'+JSON.stringify(issues.slice(0,20));continue;
       }
-      throw new Error(error instanceof z.ZodError || error instanceof SyntaxError ? '이미지 판독 응답 형식 검증 실패' : error instanceof Error ? error.message : '이미지 판독 호출 실패');
+      throw new Error(error instanceof z.ZodError || error instanceof SyntaxError ? '이미지 판독 응답 형식 검증 실패' : '이미지 모델 연결 또는 직접 픽셀 읽기에 실패했습니다.');
     }
     throw new Error('이미지 판독 응답 형식 검증 실패');
   },
@@ -93,17 +93,17 @@ export function createCursorModel(execute: (prompt: string) => Promise<string> =
       }
       // Do not expose CLI stderr, account data, prompts, or environment in API responses.
       if (error instanceof z.ZodError) {
-        console.error('[trace:model] schema validation failed', JSON.stringify(error.issues.map(issue => ({ path: issue.path, code: issue.code, message: issue.message }))));
+        console.error('[fusionbrief:model] schema validation failed', JSON.stringify(error.issues.map(issue => ({ path: issue.path, code: issue.code, message: issue.message }))));
         throw new Error('모델 응답 형식 검증 실패. 보고서로 확정하지 않았습니다.');
       }
       if (error instanceof SyntaxError) {
-        console.error('[trace:model] invalid JSON response');
+        console.error('[fusionbrief:model] invalid JSON response');
         throw new Error('모델 응답 형식 검증 실패. 보고서로 확정하지 않았습니다.');
       }
       const failure = (error && typeof error === 'object' ? error : {}) as { code?: unknown; killed?: unknown; signal?: unknown; message?: unknown };
       const inputLimit = failure.message === 'Cursor 입력 크기 제한 초과';
       // Log only bounded diagnostics, never the command, prompt, stderr or account data.
-      console.error('[trace:model] cursor invocation failed', JSON.stringify({
+      console.error('[fusionbrief:model] cursor invocation failed', JSON.stringify({
         inputBytes: Buffer.byteLength(prompt), inputLimit,
         code: typeof failure.code === 'number' || typeof failure.code === 'string' && /^[A-Z_\d]{1,80}$/.test(failure.code) ? failure.code : undefined,
         killed: failure.killed === true, signal: failure.signal === 'SIGTERM' || failure.signal === 'SIGKILL' ? failure.signal : undefined,

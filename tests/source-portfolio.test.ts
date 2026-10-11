@@ -1,0 +1,23 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { researchedRisk } from './fixtures/risk.ts';
+import { demoFeeds } from '../scripts/demo-feeds.ts';
+import { sourcePortfolio } from '../shared/source-portfolio.ts';
+import { buildAnalysisOntology } from '../shared/analysis-ontology.ts';
+import { exportMarkdown } from '../server/analysis.ts';
+test('synthetic feeds remain queryable but cannot become real source counts, confidence, or risk premises', async () => {
+  const run = await researchedRisk(); const actual = sourcePortfolio(run); const risk = structuredClone(run.risk);
+  run.simulatedFeeds = demoFeeds('2026-10-11T00:00:00Z',true,true);
+  const portfolio = sourcePortfolio(run);
+  assert.equal(portfolio.length,11);
+  assert.equal(portfolio.reduce((n,c) => n+c.simulated.length,0),4);
+  assert.deepEqual(portfolio.map(c=>c.used.length),actual.map(c=>c.used.length));
+  assert.deepEqual(run.risk,risk);
+  const graph = buildAnalysisOntology(run); assert.ok(graph.validation.conforms);
+  const synthetic = graph.nodes.filter(n=>n.type==='SimulatedFeed'); assert.equal(synthetic.length,4);
+  assert.ok(synthetic.every(n=>n.properties.includedInAssessment===false));
+  assert.ok(!graph.edges.some(e=>synthetic.some(n=>n.id===e.from || n.id===e.to)));
+  assert.ok(exportMarkdown(run).includes('실제 위험도 판단에 미반영'));
+  (run.simulatedFeeds[0] as {excludedFromAssessment:boolean}).excludedFromAssessment = false;
+  assert.ok(!buildAnalysisOntology(run).validation.conforms);
+});

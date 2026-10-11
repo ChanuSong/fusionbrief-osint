@@ -1,6 +1,7 @@
+import { PRIMARY_QUESTION } from '../../shared/primary-scenario.ts';
 import { test, expect } from '@playwright/test';
 import { wisdomFixture } from '../fixtures/wisdom.ts';
-const DEFAULT_QUESTION = '김주애의 북한 후계자 계승 가능성은? 근거와 전망을 분석해줘.';
+const DEFAULT_QUESTION = PRIMARY_QUESTION;
 
 test('question → report → original quote → graph → timeline → review → persisted record → export', async ({ page }) => {
   const consoleErrors: string[] = [];
@@ -212,32 +213,17 @@ test('custom question and source URLs → graph inference → premise quotation'
   await page.getByRole('button', { name: '분석 실행', exact: true }).click();
   expect(payload!.question).toBe(run.question);
   expect(payload!.urls).toEqual(run.sources.map(s => s.url));
-  await expect(page.getByRole('heading', { name: '사건 관계', exact: true })).toBeVisible();
-  await expect(page.locator('.cytoscape-viewport canvas').first()).toBeVisible();
-  await expect(page.locator('.network-entities button')).toHaveCount(3);
-  await expect(page.locator('.wisdom-node.inference')).toHaveCount(0);
-  await page.getByRole('link', { name: /사건 관계/ }).click();
-  await expect(page.getByRole('link', { name: /사건 관계/ })).toHaveAttribute('aria-current', 'location');
-  const beforeZoom = Number((await page.locator('.wisdom-tools > span').innerText()).replace('%', ''));
-  await page.getByRole('button', { name: '그래프 확대', exact: true }).click();
-  await expect.poll(async () => Number((await page.locator('.wisdom-tools > span').innerText()).replace('%', ''))).toBeGreaterThan(beforeZoom);
-  await page.getByRole('button', { name: '그래프 보기 초기화' }).click();
-  await expect.poll(async () => Number((await page.locator('.wisdom-tools > span').innerText()).replace('%', ''))).toBeLessThanOrEqual(100);
-  await page.locator('.network-list').evaluate(el => { el.setAttribute('open', ''); });
-  await page.locator('.network-entities button').first().focus();
-  await page.keyboard.press('Enter');
-  await expect(page.getByRole('button', { name: '관계 인용 1 원문 보기' })).toBeVisible();
-  await page.getByRole('button', { name: '관계 인용 1 원문 보기' }).click();
+  await expect(page.locator('#report-wisdom')).toHaveCount(0);
+  await page.getByRole('button', { name: '근거 연결 보기', exact: true }).first().click();
+  const graph = page.getByRole('dialog');
+  await expect(graph).toContainText('이 판단의 근거 연결');
+  await expect(graph.locator('.react-flow__node').first()).toBeVisible();
+  const beforeZoom = Number((await graph.locator('.wisdom-tools > span').innerText()).replace('%', ''));
+  await graph.getByRole('button', { name: '그래프 확대', exact: true }).click();
+  await expect.poll(async () => Number((await graph.locator('.wisdom-tools > span').innerText()).replace('%', ''))).toBeGreaterThan(beforeZoom);
+  await graph.getByRole('button', { name: 'fixture0.example 원문 근거 보기', exact: true }).click();
   await expect(page.getByRole('dialog').locator('mark')).toHaveText(run.evidence[0].quote);
   await page.keyboard.press('Escape');
-  await page.locator('.network-list li button').first().focus();
-  await page.keyboard.press('Enter');
-  await expect(page.locator('.relation-inspector')).toContainText('인용한다');
-  await page.locator('.network-list').evaluate(el => { el.setAttribute('open', ''); });
-  await page.locator('.network-entities button').first().focus();
-  await page.keyboard.press('Enter');
-  await expect(page.locator('.relation-inspector')).toContainText('Channel Alpha');
-  await page.screenshot({ path: 'test-results/wisdom-graph.png', fullPage: true });
   await page.setViewportSize({ width: 390, height: 844 });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBeTruthy();
   await page.getByRole('button', { name: '새 분석', exact: true }).click();
@@ -248,7 +234,7 @@ test('custom question and source URLs → graph inference → premise quotation'
   expect(errors).toEqual([]);
 });
 
-test('home prefills the succession question and does not fetch or show demos and recommendations', async ({ page }) => {
+test('home prefills the latest DPRK risk question and does not fetch or show demos and recommendations', async ({ page }) => {
   let removedRequests = 0;
   await page.route('**/api/bootstrap', async route => {
     const boot = await (await route.fetch()).json();

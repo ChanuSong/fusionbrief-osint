@@ -8,7 +8,7 @@ const auditSchema=z.object({verdicts:z.array(z.object({mediaHash:z.string(),supp
 export async function analyzeImagery(question:string,sources:SourceDocument[],model:JsonModel,emit:(stage:string,message:string,status?:ResearchTrace['status'])=>void):Promise<VisualFinding[]> {
   if(!model.generateVision)return [];
   const selected=[...sources].sort((a,b)=>Number(b.attribution?.control==='dprk-state')-Number(a.attribution?.control==='dprk-state'))
-    .filter(s=>s.media?.some(m=>m.hash) && /김주애|Ju[ -]?Ae|daughter|자제분|Kim Yo Jong|김여정|satellite|위성/i.test(s.body+' '+s.title))
+    .filter(s=>s.media?.some(m=>m.hash) && (s.medium==='satellite' || /김주애|Ju[ -]?Ae|daughter|자제분|Kim Yo Jong|김여정|satellite|위성/i.test(s.body+' '+s.title)))
     .flatMap(source=>(source.media??[]).filter(media=>media.hash && media.kind!=='video').slice(0,1).map(media=>({source,media})))
     .filter((item,i,all)=>all.findIndex(other=>other.media.hash===item.media.hash)===i).slice(0,3);
   const candidates=await Promise.all(selected.map(async item=>({...item,asset:await readMedia(item.media.hash!)})));
@@ -28,7 +28,7 @@ export async function analyzeImagery(question:string,sources:SourceDocument[],mo
         || !verdict[0].supported || !verdict[0].relevanceBounded || !verdict[0].identityGrounded || f.identityQuote && !item.source.body.includes(f.identityQuote))return [];
       item.media.analysis='visual-reviewed';
       return [{sourceId:f.sourceId,mediaHash:f.mediaHash,description:f.description,relevance:f.relevance,identityQuote:f.identityQuote,
-        limitations:[...new Set([...f.limitations,'배포된 이미지의 시각적 관측은 승계 지명·권한·연출되지 않은 상황을 입증하지 않습니다.'])],verified:true}];
+        limitations:[...new Set([...f.limitations,'공개 이미지의 관측만으로 인물의 권한·의도나 특정 군사 활동의 실행을 확정할 수 없습니다.'])],verified:true}];
     });
     emit('시각 판독',`원본 이미지 ${ready.length}개 중 관측 설명 ${results.length}개 독립 검증`,'complete');return results;
   }catch(error){emit('시각 판독',`직접 판독 미완료 · ${error instanceof Error ? error.message : '영상 모델 연결 오류'} · 캡션·본문 대조 범위로 제한합니다.`,'failed');return [];}

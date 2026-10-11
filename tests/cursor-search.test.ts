@@ -57,12 +57,12 @@ test('unreadable search metadata fails clearly rather than reporting a false zer
 });
 
 test('public search defaults to Cursor and papers retain the public Crossref module', () => {
-  const before = process.env.TRACE_SEARCH_PROVIDER;
+  const before = process.env.FUSIONBRIEF_SEARCH_PROVIDER;
   try {
-    delete process.env.TRACE_SEARCH_PROVIDER;
+    delete process.env.FUSIONBRIEF_SEARCH_PROVIDER;
     assert.equal(publicSearchLabel(query), 'Cursor WebSearch');
     assert.equal(publicSearchLabel({ ...query, module: 'papers' }), 'Crossref');
-    process.env.TRACE_SEARCH_PROVIDER = 'typo';
+    process.env.FUSIONBRIEF_SEARCH_PROVIDER = 'typo';
     assert.throws(() => publicSearchLabel(query), /검색 제공자 설정/);
-  } finally { if (before === undefined) delete process.env.TRACE_SEARCH_PROVIDER; else process.env.TRACE_SEARCH_PROVIDER = before; }
+  } finally { if (before === undefined) delete process.env.FUSIONBRIEF_SEARCH_PROVIDER; else process.env.FUSIONBRIEF_SEARCH_PROVIDER = before; }
 });

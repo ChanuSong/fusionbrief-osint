@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { ArrowRight, CalendarRange, Layers } from 'lucide-react';
 import type { AnalysisRun, Evidence } from '../../shared/types.ts';
 const LEVELS = { high: '높음', medium: '중간', low: '낮음', undetermined: '판단 유보' };
-export function BriefingVisuals({ run, onEvidence, onSelectClaim }: { run: AnalysisRun; onEvidence: (evidence: Evidence) => void; onSelectClaim: (id: string) => void }) {
+export function BriefingVisuals({ run, onEvidence, onSelectClaim, onGraph }: { run: AnalysisRun; onEvidence: (evidence: Evidence) => void; onSelectClaim: (id: string) => void; onGraph:(ids:string[],sentence:string)=>void }) {
   const events = useMemo(() => [...(run.events ?? [])].sort((a,b) => a.date.localeCompare(b.date)), [run]);
   const dates = [...new Set(events.map(e => e.date))];
   const [view, setView] = useState<'timeline' | 'origins'>(dates.length ? 'timeline' : 'origins');
@@ -36,7 +36,7 @@ export function BriefingVisuals({ run, onEvidence, onSelectClaim }: { run: Analy
     </div><aside className="briefing-next"><span className="eyebrow">분석적 판단 · 불확실성</span>
       {hypotheses[0] ? <><h3>근거를 연결한 해석</h3><p>{hypotheses[0].conclusion}</p><div className="briefing-inference-citations"><small>해석 · 신뢰도 {LEVELS[hypotheses[0].confidence]}</small>{hypotheses[0].evidenceIds.map(evidenceButton)}</div><details><summary>다음 확인과 경쟁 설명</summary><p>{hypotheses[0].nextCheck}</p><ul>{hypotheses[0].alternatives.map(item => <li key={item}>{item}</li>)}</ul></details></>
         : <><h3>{run.gaps.length ? '추가로 확보할 정보' : '출처 독립성을 확인하세요'}</h3><p>{run.gaps[0] ?? '독립적인 공개 원문이 같은 판단을 뒷받침하는지 검토해야 합니다.'}</p></>}
-      <a href="#report-wisdom">이 해석의 관계와 원문 보기<ArrowRight size={14} /></a>
+      {hypotheses[0] ? <button className="judgment-graph-trigger" onClick={()=>onGraph(hypotheses[0].claimIds,hypotheses[0].conclusion)}>이 해석의 관계와 원문 보기<ArrowRight size={14}/></button>:null}
     </aside></div>
   </section>;
 }

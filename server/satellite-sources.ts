@@ -9,7 +9,9 @@ export async function searchSatellite(query: ResearchQuery): Promise<SearchHit[]
   if (!/^\d{4}-\d{2}-\d{2}(?:T[0-9:]+Z)?\/\d{4}-\d{2}-\d{2}(?:T[0-9:]+Z)?$/.test(query.datetime)) throw new Error('위성 촬영 기간 형식 오류');
   const url = new URL(`${BASE}/search`);
   url.searchParams.set('collections','sentinel-2-l2a'); url.searchParams.set('bbox',query.bbox.join(','));
-  url.searchParams.set('datetime',query.datetime); url.searchParams.set('limit','5');
+  // Earth Search requires RFC3339 timestamps even when the planner gives calendar dates.
+  const interval = query.datetime.split('/').map((part,index)=>/^\d{4}-\d{2}-\d{2}$/.test(part) ? `${part}T${index === 0 ? '00:00:00' : '23:59:59'}Z` : part).join('/');
+  url.searchParams.set('datetime',interval); url.searchParams.set('limit','5');
   const record = JSON.parse((await publicFetch(url.href)).body.toString()) as {features?: {id:string;properties:{datetime?:string;'eo:cloud_cover'?:number};links:{rel:string;href:string}[]}[]};
   return (record.features ?? []).sort((a,b)=>(a.properties['eo:cloud_cover'] ?? 100)-(b.properties['eo:cloud_cover'] ?? 100)).map(item=>({
     url: publicURL(item.links.find(link=>link.rel==='self')?.href ?? `${BASE}/collections/sentinel-2-l2a/items/${encodeURIComponent(item.id)}`).href,

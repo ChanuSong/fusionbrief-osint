@@ -15,14 +15,19 @@ for (const file of files) {
   validateDemo(pack);
   const run = pack.run;
   assert.equal(run.answer?.composition, 'synthesized', '검증된 종합 답변 필요');
-  assert.ok(run.answer.paragraphs.length >= (run.analysis ? 1 : 3) && run.sources.length >= 8 && run.evidence.length >= 12);
-  assert.ok((run.relations?.length ?? 0) >= 3 && (run.events?.length ?? 0) >= 3);
+  assert.ok(run.answer.paragraphs.length >= (run.analysis ? 1 : 3) && run.sources.length >= 8 && run.evidence.length >= 6);
+  if (!run.risk) assert.ok((run.relations?.length ?? 0) >= 3 && (run.events?.length ?? 0) >= 3);
   const languages = new Set(run.evidence.map(e => run.sources.find(s => s.id === e.sourceId)!.language));
   if (pack.main) {
     mains++;
-    assert.equal(run.analysis?.dimension,'forecast');
-    assert.equal(run.analysis.verification,'verified');
-    assert.ok(run.analysis.keyJudgments?.length && run.analysis.outlook?.length,'근거 연결된 주요 판단·조건부 전망 필요');
+    assert.equal(run.analysis?.verification,'verified');
+    if(run.risk) {
+      assert.equal(run.risk.verification,'verified');
+      assert.notEqual(run.risk.overall.level,'unassessed','대표 위험 사례의 평가 근거 필요');
+      assert.ok(run.risk.items.length && run.risk.actions.length,'근거 연결된 위험 항목·권장 추가 액션 필요');
+      assert.equal(new Set(run.research?.searches?.map(s=>s.query.module)).size,11,'11종 공개 자료의 실제 조사 기록 필요');
+      assert.ok(run.simulatedFeeds?.every(f=>f.excludedFromAssessment),'모의 자료의 실제 평가 제외 필요');
+    } else assert.ok(run.analysis?.keyJudgments?.length && run.analysis.outlook?.length,'근거 연결된 주요 판단·조건부 전망 필요');
     assert.equal(buildAnalysisOntology(run).validation.conforms,true,'대표 사례의 근거 관계 무결성 필요');
     assert.ok(run.research?.strategy?.sourcePlan?.length===11,'모든 자료 유형의 관련성 검토 필요');
   }

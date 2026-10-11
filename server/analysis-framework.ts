@@ -72,7 +72,7 @@ export const FRAMEWORK_INSTRUCTIONS = BASIS_INSTRUCTIONS
   + 'Write in Korean, concise reasoning, no citation IDs inside prose. Return one assessment per criterion.';
 
 export function requiresCriteria(question: string): boolean {
-  return /봉쇄|blockade|quarantine|적법|위법|국제법|판단\s*기준|기준.*위반|위반.*여부|후계|승계|계승|전망|succession|forecast/i.test(question);
+  return /봉쇄|blockade|quarantine|적법|위법|국제법|판단\s*기준|기준.*위반|위반.*여부|후계|승계|계승|전망|위험도|리스크|risk|succession|forecast/i.test(question);
 }
 export function one<T>(items: T[], matches: (item: T) => boolean): T | undefined {
   const found = items.filter(matches); return found.length === 1 ? found[0] : undefined;
@@ -80,7 +80,7 @@ export function one<T>(items: T[], matches: (item: T) => boolean): T | undefined
 export function sourceIntact(source: SourceDocument): boolean {
   return createHash('sha256').update(source.body).digest('hex') === source.hash;
 }
-function goodClaims(run: AnalysisRun, claimIds: string[]): boolean {
+export function goodClaims(run: AnalysisRun, claimIds: string[]): boolean {
   return claimIds.length > 0 && new Set(claimIds).size === claimIds.length && claimIds.every(id => {
     const claim = run.claims.find(c => c.id === id);
     return claim && claim.status !== 'insufficient' && claim.status !== 'conflicting' && claim.evidenceIds.length > 0
@@ -91,10 +91,10 @@ function goodClaims(run: AnalysisRun, claimIds: string[]): boolean {
       });
   });
 }
-function goodCriteria(criteria: AnalysisCriterion[], refs: string[]): boolean {
+export function goodCriteria(criteria: AnalysisCriterion[], refs: string[]): boolean {
   return new Set(refs).size === refs.length && refs.every(id => criteria.some(c => c.id === id));
 }
-function capConfidence(run: AnalysisRun, claimIds: string[], criteria: AnalysisCriterion[], proposed: FrameworkDraft['judgment']['confidence']) {
+export function capConfidence(run: AnalysisRun, claimIds: string[], criteria: AnalysisCriterion[], proposed: FrameworkDraft['judgment']['confidence']) {
   const levels = ['undetermined', 'low', 'medium', 'high'] as const;
   const max = Math.min(levels.indexOf(proposed.level), ...claimIds.map(id => levels.indexOf(run.claims.find(c => c.id === id)?.confidence?.level ?? 'undetermined')),
     ...criteria.map(c => c.dimension === 'forecast' ? 2 : c.basisKind === 'analyst-derived' ? (c.basisStatus === 'verified' ? 2 : 1) : c.basis.some(b => b.versionStatus === 'unconfirmed') ? 1 : 3));
@@ -235,6 +235,7 @@ export async function auditFramework(model: JsonModel, run: AnalysisRun, criteri
 }
 
 export function invalidateFramework(run: AnalysisRun, claimId: string): void {
+  if (run.risk) { run.risk.verification = 'pending'; delete run.risk.verifiedAt; }
   const framework = run.analysis; if (!framework) return;
   if (![...framework.assessments,...framework.observations,...framework.perspectives,...framework.alternatives,
     ...(framework.keyJudgments ?? []),...(framework.outlook ?? []),framework.judgment].some(item=>item.claimIds.includes(claimId))) return;

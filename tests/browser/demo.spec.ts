@@ -34,8 +34,6 @@ test('archived APAC report → multilingual quotes → reasoning → map → sou
   expect(loadMs).toBeLessThan(5000);
   await expect(page.locator('.demo-provenance')).toContainText('사전 수집·검증 결과');
   await page.screenshot({ path: 'test-results/demo-answer.png', fullPage: false });
-  await page.locator('.relation-insights > summary').click();
-  await expect(page.locator('.relation-insights')).toHaveAttribute('open', '');
   for (const [label, code] of [['한국어','KO'],['중국어','ZH'],['일본어','JA'],['러시아어','RU']]) {
     await page.getByRole('group', { name: '원문 언어 필터' }).getByRole('button', { name: new RegExp(label) }).click();
     await page.getByRole('button', { name: new RegExp(`^${code} 인용`) }).first().click();
@@ -44,11 +42,11 @@ test('archived APAC report → multilingual quotes → reasoning → map → sou
   }
   await page.screenshot({ path: 'test-results/demo-language.png' });
   await expect(page.getByRole('heading', { name: '판단을 뒷받침하는 정보' })).toBeVisible();
-  await expect(page.locator('.cytoscape-viewport canvas').first()).toBeVisible();
-  await expect(page.locator('.relation-insights')).toHaveAttribute('open', '');
-  await page.getByRole('button', { name: '이 해석의 근거 관계 보기' }).click();
-  await expect(page.locator('.relation-insights')).toContainText('다른 설명');
+  await expect(page.locator('#report-wisdom')).toHaveCount(0);
+  await page.getByRole('button', { name: '근거 연결 보기', exact: true }).first().click();
+  await expect(page.getByRole('dialog').locator('.react-flow__node').first()).toBeVisible();
   await page.screenshot({ path: 'test-results/demo-graph.png' });
+  await page.keyboard.press('Escape');
   await page.getByRole('button', { name: '공군 11월 훈련 공고 판단 선택', exact: true }).click();
   await page.getByRole('tab', { name: '타임라인', exact: true }).click();
   await expect(page.locator('#panel-timeline')).toContainText('공군 훈련 첫 예정일');

@@ -31,8 +31,8 @@ test('a visual format retry repeats the same actual image reads and preserves ne
   await assert.rejects(()=>captionOnly.generateVision!(z.object({visible:z.string()}),'Inspect',{},[image]),/픽셀/);assert.equal(calls,1);
 });
 test('visual findings require immutable originals, independent audit and literal identity attribution',async()=>{
-  const directory=await mkdtemp(join(tmpdir(),'trace-image-test-'));const previous=process.env.TRACE_MEDIA_DIRECTORY;
-  process.env.TRACE_MEDIA_DIRECTORY=directory;
+  const directory=await mkdtemp(join(tmpdir(),'trace-image-test-'));const previous=process.env.FUSIONBRIEF_MEDIA_DIRECTORY;
+  process.env.FUSIONBRIEF_MEDIA_DIRECTORY=directory;
   try {
     const hash=createHash('sha256').update(bytes).digest('hex');await writeFile(join(directory,hash),bytes);
     const source=wisdomFixture().sources[0];source.body='Kim Ju Ae daughter at an event.';
@@ -48,5 +48,5 @@ test('visual findings require immutable originals, independent audit and literal
     assert.equal((await analyzeImagery('김주애 승계',[source],model,()=>{})).length,0);
     await writeFile(join(directory,hash),Buffer.from('tampered'));
     assert.equal((await analyzeImagery('김주애 승계',[source],model,()=>{})).length,0);
-  }finally{if(previous===undefined)delete process.env.TRACE_MEDIA_DIRECTORY;else process.env.TRACE_MEDIA_DIRECTORY=previous;await rm(directory,{recursive:true,force:true});}
+  }finally{if(previous===undefined)delete process.env.FUSIONBRIEF_MEDIA_DIRECTORY;else process.env.FUSIONBRIEF_MEDIA_DIRECTORY=previous;await rm(directory,{recursive:true,force:true});}
 });

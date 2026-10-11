@@ -1,6 +1,8 @@
 import { spawn } from 'node:child_process';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { researchedFramework } from './fixtures/framework.ts';
+import { researchedRisk } from './fixtures/risk.ts';
+import { demoFeeds } from '../scripts/demo-feeds.ts';
 import { openCriterionKnowledge } from '../server/criterion-knowledge.ts';
 import { openStore } from '../server/store.ts';
 // An isolated test store only; never seeds the user's store or the demo catalog.
@@ -21,8 +23,11 @@ const preserved = knowledge.preserve(norm, run.analysis!.criteria.flatMap(c => c
 run.sources = run.sources.map(s => s.id === norm.id ? preserved : s);
 await writeFile('.local/browser-test-store.json', JSON.stringify({ schema: 1, runs: [] }));
 const store = await openStore('.local/browser-test-store.json', knowledge);
-await store.add(empty); await store.add(run);
+const risk = await researchedRisk();
+risk.simulatedFeeds = demoFeeds('2026-10-11T00:00:00Z',true,true);
+risk.id = '20000000-0000-0000-0000-000000000003'; risk.question = '자동 검증 전용 가상 항만 위험 분석';
+await store.add(risk); await store.add(empty); await store.add(run);
 knowledge.close();
-const server = spawn(process.execPath, ['--import', 'tsx', 'server/index.ts', '--port', '5174', '--store', '.local/browser-test-store.json', '--knowledge', '.local/browser-test-knowledge.sqlite'], { stdio: 'inherit', env: { ...process.env, TRACE_LIVE_ENABLED: '0' } });
+const server = spawn(process.execPath, ['--import', 'tsx', 'server/index.ts', '--port', '5174', '--store', '.local/browser-test-store.json', '--knowledge', '.local/browser-test-knowledge.sqlite'], { stdio: 'inherit', env: { ...process.env, FUSIONBRIEF_LIVE_ENABLED: '0' } });
 for (const signal of ['SIGINT', 'SIGTERM'] as const) process.on(signal, () => server.kill(signal));
 server.on('exit', code => process.exit(code ?? 0));

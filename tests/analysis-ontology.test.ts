@@ -14,7 +14,7 @@ test('ontology records auditable judgment/criterion/provision and assessment/cla
   assert.deepEqual(assessmentPaths(run, 'access'), [{ claimId: 'access-claim', evidenceId: 'access-claim-e1', sourceId: 'event' }]);
   const ld = ontologyJSONLD(graph);
   assert.equal(ld['@context'].wasDerivedFrom && (ld['@context'].wasDerivedFrom as { '@id': string })['@id'], 'prov:wasDerivedFrom');
-  assert.ok(ld['@graph'].every(n => n['@id'].startsWith(`urn:trace:run:${run.id}:`)));
+  assert.ok(ld['@graph'].every(n => n['@id'].startsWith(`urn:fusionbrief:run:${run.id}:`)));
   assert.ok(!graph.edges.some(e => /causes|sameAs/.test(e.predicate)));
 });
 test('unknown remains unknown; announcements cannot masquerade as performed acts and unsupported links are rejected', async () => {

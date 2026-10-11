@@ -26,6 +26,7 @@ export function validateInput(value: unknown): AnalysisInput {
   if (typeof v.question !== 'string' || !v.question.trim() || v.question.length > 1500)
     throw new InputError('질문은 1~1500자로 입력해주세요.');
   if (v.mode !== 'snapshot' && v.mode !== 'refresh' && v.mode !== 'live') throw new InputError('자료 모드를 확인해주세요.');
+  if (v.sourcePolicy !== undefined && v.sourcePolicy !== 'all-public') throw new InputError('자료 조사 범위를 확인해주세요.');
   for (const key of ['startDate', 'endDate']) {
     if (v[key] !== undefined && (typeof v[key] !== 'string' || !validDate(v[key] as string)))
       throw new InputError('날짜는 YYYY-MM-DD 형식의 유효한 날짜여야 합니다.');
@@ -39,7 +40,7 @@ export function validateInput(value: unknown): AnalysisInput {
     try { const u = new URL(String(url)); return typeof url !== 'string' || u.protocol !== 'https:' || !!u.username || !!u.password; } catch { return true; }
   }))) throw new InputError('공개 HTTPS 원문 URL을 최대 5개 입력해주세요.');
   return { question: v.question.trim(), mode: v.mode, startDate, endDate,
-    ...(v.languages ? { languages: v.languages as AnalysisInput['languages'] } : {}), ...(v.urls ? { urls: v.urls as string[] } : {}) };
+    ...(v.languages ? { languages: v.languages as AnalysisInput['languages'] } : {}), ...(v.urls ? { urls: v.urls as string[] } : {}), ...(v.sourcePolicy ? { sourcePolicy: 'all-public' as const } : {}) };
 }
 
 export function validEvidence(e: Evidence, source: SourceDocument | undefined): boolean {
@@ -177,6 +178,7 @@ export function approveReport(stored: AnalysisRun, input: Omit<ReportApproval, '
     throw new InputError('검토자 이름과 검토 의견(5자 이상)을 입력해주세요.');
   if (input.decision === 'approved' && !stored.claims.some(c => c.evidenceIds.length)) throw new InputError('원문 근거가 없는 보고서는 승인할 수 없습니다.');
   if (input.decision === 'approved' && stored.analysis && stored.analysis.verification !== 'verified') throw new InputError('기준별 사건 대조를 재검증한 뒤 승인해주세요.');
+  if (input.decision === 'approved' && stored.risk && stored.risk.verification !== 'verified') throw new InputError('위험 평가와 권장 액션을 재검증한 뒤 승인해주세요.');
   if (input.decision === 'approved' && stored.analysis && !buildAnalysisOntology(stored).validation.conforms)
     throw new InputError('기준·사건·출처 연결을 검증한 뒤 승인해주세요.');
   const run = structuredClone(stored);

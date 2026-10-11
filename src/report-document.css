@@ -243,7 +243,7 @@
 @page intelligence-report {
   size: A4;
   margin: 18mm 18mm 20mm;
-  @bottom-left { content: "TRACE · 공개정보 분석"; font: 8pt sans-serif; color: #555; }
+  @bottom-left { content: "FUSIONBRIEF · 공개정보 분석"; font: 8pt sans-serif; color: #555; }
   @bottom-right { content: counter(page) " / " counter(pages); font: 8pt sans-serif; color: #555; }
 }
 @media print {
@@ -311,3 +311,7 @@
 
 /* The document already uses html scroll-padding for the fixed navigation. */
 .report-view [id^="report-"] { scroll-margin-top: 8px; }
+
+.document-request { margin:12px 0 0; font-size:11px; color:#657989; line-height:1.9; }
+.document-request summary { cursor:pointer; }
+.document-request p { margin:8px 0; }

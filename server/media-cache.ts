@@ -3,7 +3,7 @@ import { resolve } from 'node:path';
 import { createHash } from 'node:crypto';
 import type { SourceDocument } from '../shared/types.ts';
 import { publicFetch } from './public-sources.ts';
-const directory = () => resolve(process.env.TRACE_MEDIA_DIRECTORY ?? '.local/media');
+const directory = () => resolve((process.env.FUSIONBRIEF_MEDIA_DIRECTORY ?? process.env.TRACE_MEDIA_DIRECTORY) ?? '.local/media');
 function imageType(body: Buffer): string | undefined {
   if (body.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10]))) return 'image/png';
   if (body[0]===255 && body[1]===216 && body[2]===255) return 'image/jpeg';

@@ -34,14 +34,14 @@ const storeArg = process.argv.indexOf('--store');
 const knowledgeArg = process.argv.indexOf('--knowledge');
 const knowledge = await openCriterionKnowledge(resolve(root, knowledgeArg >= 0 ? process.argv[knowledgeArg + 1] : '.local/knowledge.sqlite'));
 const store = await openStore(resolve(root, storeArg >= 0 ? process.argv[storeArg + 1] : '.local/store.json'), knowledge);
-const capabilities = process.env.TRACE_LIVE_ENABLED === '0'
+const capabilities = (process.env.FUSIONBRIEF_LIVE_ENABLED ?? process.env.TRACE_LIVE_ENABLED) === '0'
   ? { available: false, model: '', message: '이 실행에서는 실시간 모델 연결을 사용하지 않습니다.' }
   : await modelStatus();
 type Job = { id: string; state: 'running' | 'complete' | 'failed'; trace: ResearchTrace[]; run?: AnalysisRun; error?: string };
 const jobs = new Map<string, Job>();
 const topics = createTopicService(capabilities.available);
 const demos = await loadDemoCatalog(resolve(root, 'data/demo'));
-if (demos.errors.length) console.error('[trace:demo]', demos.errors);
+if (demos.errors.length) console.error('[fusionbrief:demo]', demos.errors);
 const vite = production ? undefined : await (await import('vite')).createServer({
   root, server: { middlewareMode: true, ws: { port: port <= 55535 ? port + 10000 : port - 10000 } }, appType: 'spa',
 });
@@ -205,7 +205,7 @@ const server = createServer(async (request, response) => {
     if (url.pathname.startsWith('/api/')) console.log(`${request.method} ${url.pathname} ${response.statusCode} ${Math.round(performance.now() - began)}ms`);
   }
 });
-server.listen(port, '127.0.0.1', () => console.log(`TRACE local: http://localhost:${port}`));
+server.listen(port, '127.0.0.1', () => console.log(`FUSIONBRIEF local: http://localhost:${port}`));
 for (const signal of ['SIGINT', 'SIGTERM'] as const) process.on(signal, async () => {
   knowledge.close();
   await vite?.close();

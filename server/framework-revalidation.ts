@@ -3,6 +3,7 @@ import type { JsonModel } from './model.ts';
 import { cursorModel } from './model.ts';
 import { InputError } from './analysis.ts';
 import { auditFramework, finalizeFramework, FRAMEWORK_INSTRUCTIONS, frameworkDraftSchema, sourceIntact, syncFrameworkAnswer } from './analysis-framework.ts';
+import { assessRisk, requiresRisk } from './risk-analysis.ts';
 
 export async function revalidateFramework(stored: AnalysisRun, model: JsonModel = cursorModel): Promise<AnalysisRun> {
   if (!stored.analysis) throw new InputError('기준별 분석이 있는 보고서만 재검증할 수 있습니다.');
@@ -22,6 +23,7 @@ export async function revalidateFramework(stored: AnalysisRun, model: JsonModel 
   const audit = await auditFramework(model, run, f.criteria, draft);
   run.analysis = finalizeFramework(plan, f.criteria, draft, audit, run, f.sourcePolicies, f.rejected);
   syncFrameworkAnswer(run);
+  if (run.risk || requiresRisk(run.question)) run.risk = await assessRisk(run, model);
   run.version++; run.updatedAt = new Date().toISOString(); run.approval = undefined;
   return run;
 }

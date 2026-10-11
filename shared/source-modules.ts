@@ -13,3 +13,4 @@ export const SOURCE_MODULES: Record<SourceModule, { label: string; capability: s
   patents: { label: '특허', capability: '공개 특허 공보·WIPO·특허청·Google Patents 검색', limits: '출원·등록·실제 구현과 배치를 구분' },
 };
 export const MODULE_IDS = Object.keys(SOURCE_MODULES) as SourceModule[];
+export const allSourcesRequested = (question: string) => /(?:모든|전체)\s*공개\s*(?:정보|자료)(?:\s*유형)?/.test(question);

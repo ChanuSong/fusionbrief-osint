@@ -1,7 +1,8 @@
 import type { AnalysisRun } from './types.ts';
+import { riskLevel } from './risk-policy.ts';
 
-export const TRACE_VOCABULARY = 'urn:trace:ontology:';
-export type OntologyClass = 'DocumentSnapshot' | 'ImageSnapshot' | 'VisualObservation' | 'Forecast' | 'Provision' | 'Criterion' | 'Claim' | 'Quotation' | 'Observation' | 'Assessment' | 'Judgment' | 'Actor' | 'Entity' | 'Event' | 'ResearchPlan' | 'OriginGroup' | 'ValidationReport';
+export const FUSIONBRIEF_VOCABULARY = 'urn:fusionbrief:ontology:';
+export type OntologyClass = 'DocumentSnapshot' | 'ImageSnapshot' | 'VisualObservation' | 'Forecast' | 'RiskAssessment' | 'RecommendedAction' | 'SimulatedFeed' | 'Provision' | 'Criterion' | 'Claim' | 'Quotation' | 'Observation' | 'Assessment' | 'Judgment' | 'Actor' | 'Entity' | 'Event' | 'ResearchPlan' | 'OriginGroup' | 'ValidationReport';
 export type OntologyPredicate = 'hasBasis' | 'evaluates' | 'groundedIn' | 'wasDerivedFrom' | 'describes' | 'tests' | 'aboutActor' | 'hasOrigin';
 export interface OntologyNode {
   id: string; type: OntologyClass; label: string; referenceId: string;
@@ -9,7 +10,7 @@ export interface OntologyNode {
 }
 export interface OntologyEdge { from: string; predicate: OntologyPredicate; to: string; }
 export interface AnalysisOntology {
-  version: 'trace-ontology-v1'; runId: string; runVersion: number;
+  version: 'fusionbrief-ontology-v1'; runId: string; runVersion: number;
   nodes: OntologyNode[]; edges: OntologyEdge[];
   validation: { conforms: boolean; violations: string[] };
 }
@@ -18,7 +19,7 @@ export interface AnalysisOntology {
  * evidence dependencies, not automatic legal, causal, or identity entailments. */
 export function buildAnalysisOntology(run: AnalysisRun): AnalysisOntology {
   const nodes = new Map<string, OntologyNode>(); const edges: OntologyEdge[] = []; const violations: string[] = [];
-  const key = (type: OntologyClass, id: string) => `urn:trace:run:${run.id}:${type}:${encodeURIComponent(id)}`;
+  const key = (type: OntologyClass, id: string) => `urn:fusionbrief:run:${run.id}:${type}:${encodeURIComponent(id)}`;
   const add = (type: OntologyClass, id: string, label: string, properties: OntologyNode['properties'] = {}) => {
     const nodeId = key(type, id);
     nodes.set(nodeId, { id: nodeId, type, label, referenceId: id, properties }); return nodeId;
@@ -128,6 +129,33 @@ export function buildAnalysisOntology(run: AnalysisRun): AnalysisOntology {
         violations.push(`${criterion.label}: 미확인 핵심 전제에서 결론 확정`);
     }
   }
+  if (run.risk) {
+    const risk = run.risk;
+    const pending = risk.verification !== 'verified' || run.analysis?.verification !== 'verified';
+    if (!pending && new Set([risk.overall.id, ...risk.items.map(i => i.id)]).size !== risk.items.length + 1) violations.push('위험 평가 ID 중복');
+    if (!pending && new Set(risk.actions.map(a => a.id)).size !== risk.actions.length) violations.push('권장 액션 ID 중복');
+    for (const item of [risk.overall, ...(pending ? [] : risk.items)]) {
+      const id = add('RiskAssessment', item.id, pending ? '위험 평가 재검증 대기' : item.summary, {
+        scope: risk.scope, horizon: risk.horizon, asOf: risk.asOf, level: pending ? 'unassessed' : item.level,
+        likelihood: pending ? 'unassessed' : item.likelihood, impact: pending ? 'unassessed' : item.impact,
+        confidence: pending ? 'undetermined' : item.confidence.level, method: risk.method, verification: risk.verification });
+      if (!pending && item.level !== riskLevel(item.likelihood,item.impact)) violations.push(`${item.label}: 가능성·영향과 위험도 불일치`);
+      if (!pending && item.level !== 'unassessed' && (!item.claimIds.length || !item.criterionIds.length)) violations.push(`${item.label}: 위험 평가의 근거 누락`);
+      for (const cid of item.claimIds) link(id,'groundedIn',key('Claim',cid));
+      for (const cid of item.criterionIds) link(id,'wasDerivedFrom',key('Assessment',cid));
+    }
+    if (!pending) for (const action of risk.actions) {
+      const id = add('RecommendedAction',action.id,action.title,{priority:action.priority,owner:action.owner,timing:action.timing,trigger:action.trigger,completion:action.completion,executed:false});
+      if (!action.claimIds.length || !action.criterionIds.length) violations.push(`${action.title}: 권장 액션의 근거 누락`);
+      for (const cid of action.claimIds) link(id,'groundedIn',key('Claim',cid));
+      for (const cid of action.criterionIds) link(id,'wasDerivedFrom',key('Assessment',cid));
+    }
+  }
+  for (const feed of run.simulatedFeeds ?? []) {
+    add('SimulatedFeed', feed.id, feed.title, { module:feed.module, simulated:true, includedInAssessment:false, createdAt:feed.createdAt });
+    if (feed.excludedFromAssessment !== true) violations.push(`${feed.title}: 모의 피드를 실제 판단에서 제외해야 합니다.`);
+  }
+  if (new Set(run.simulatedFeeds?.map(f => f.id)).size !== (run.simulatedFeeds?.length ?? 0)) violations.push('모의 피드 ID 중복');
   if (run.research?.strategy) {
     const pid = add('ResearchPlan', 'plan', run.research.strategy.interpretation, {
     decision: run.research.strategy.decision, stoppingRule: run.research.strategy.stoppingRule,
@@ -135,18 +163,18 @@ export function buildAnalysisOntology(run: AnalysisRun): AnalysisOntology {
     for (const node of nodes.values()) if (node.type === 'Criterion' || node.type === 'Judgment') link(node.id, 'wasDerivedFrom', pid);
   }
   add('ValidationReport', 'constraints', '기준·사건·출처 관계 무결성 검증', { conforms: !violations.length, violations: [...new Set(violations)] });
-  return { version: 'trace-ontology-v1', runId: run.id, runVersion: run.version, nodes: [...nodes.values()], edges,
+  return { version: 'fusionbrief-ontology-v1', runId: run.id, runVersion: run.version, nodes: [...nodes.values()], edges,
     validation: { conforms: !violations.length, violations: [...new Set(violations)] } };
 }
 
 export function ontologyJSONLD(ontology: AnalysisOntology) {
-  const context: Record<string, unknown> = { trace: TRACE_VOCABULARY, prov: 'http://www.w3.org/ns/prov#',
+  const context: Record<string, unknown> = { fusionbrief: FUSIONBRIEF_VOCABULARY, prov: 'http://www.w3.org/ns/prov#',
     label: 'http://www.w3.org/2000/01/rdf-schema#label' };
-  for (const type of ['DocumentSnapshot', 'ImageSnapshot', 'VisualObservation', 'Forecast', 'Provision', 'Criterion', 'Claim', 'Quotation', 'Observation', 'Assessment', 'Judgment', 'Actor', 'Entity', 'Event', 'ResearchPlan', 'OriginGroup', 'ValidationReport']) context[type] = `trace:${type}`;
-  for (const predicate of ['hasBasis', 'evaluates', 'groundedIn', 'describes', 'tests', 'aboutActor', 'hasOrigin']) context[predicate] = { '@id': `trace:${predicate}`, '@type': '@id' };
+  for (const type of ['DocumentSnapshot', 'ImageSnapshot', 'VisualObservation', 'Forecast', 'RiskAssessment', 'RecommendedAction', 'SimulatedFeed', 'Provision', 'Criterion', 'Claim', 'Quotation', 'Observation', 'Assessment', 'Judgment', 'Actor', 'Entity', 'Event', 'ResearchPlan', 'OriginGroup', 'ValidationReport']) context[type] = `fusionbrief:${type}`;
+  for (const predicate of ['hasBasis', 'evaluates', 'groundedIn', 'describes', 'tests', 'aboutActor', 'hasOrigin']) context[predicate] = { '@id': `fusionbrief:${predicate}`, '@type': '@id' };
   context.wasDerivedFrom = { '@id': 'prov:wasDerivedFrom', '@type': '@id' };
-  for (const property of new Set(ontology.nodes.flatMap(n => Object.keys(n.properties)))) context[property] = `trace:${property}`;
-  return { '@context': context, '@id': `urn:trace:run:${ontology.runId}:v${ontology.runVersion}`,
+  for (const property of new Set(ontology.nodes.flatMap(n => Object.keys(n.properties)))) context[property] = `fusionbrief:${property}`;
+  return { '@context': context, '@id': `urn:fusionbrief:run:${ontology.runId}:v${ontology.runVersion}`,
     '@graph': ontology.nodes.map(node => ({ '@id': node.id, '@type': node.type, label: node.label, ...node.properties,
       ...Object.fromEntries([...new Set(ontology.edges.filter(e => e.from === node.id).map(e => e.predicate))]
         .map(predicate => [predicate, ontology.edges.filter(e => e.from === node.id && e.predicate === predicate).map(e => e.to)])) } as { '@id': string; '@type': OntologyClass; label: string } & Record<string, unknown>)) };

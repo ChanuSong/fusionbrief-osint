@@ -1,3 +1,4 @@
+import { PRIMARY_QUESTION } from '../../shared/primary-scenario.ts';
 import { test, expect } from '@playwright/test';
 import { openSavedScenario } from './saved-report.ts';
 
@@ -22,8 +23,9 @@ test('briefing links verified dates and source counts to original evidence', asy
 
   await expect(page.locator('#report-stress')).toHaveCount(0);
   await expect(page.getByRole('button', { name: '취약 근거 시험하기' })).toHaveCount(0);
-  await visuals.getByRole('link', { name: '이 해석의 관계와 원문 보기' }).click();
-  await expect(page.locator('#report-wisdom .cytoscape-viewport canvas').first()).toBeVisible();
+  await visuals.getByRole('button', { name: '이 해석의 관계와 원문 보기' }).click();
+  await expect(page.getByRole('dialog').locator('.react-flow__node').first()).toBeVisible();
+  await page.keyboard.press('Escape');
   const saved = await (await request.get(`/api/runs/${original.id}`)).json();
   expect(saved.version).toBe(original.version); expect(saved.claims).toEqual(original.claims); expect(saved.answer).toEqual(original.answer);
   await page.setViewportSize({ width: 390, height: 844 });
@@ -50,7 +52,7 @@ test('analysis request starts progress immediately and recovers from a submissio
   release();
   await expect(page.getByRole('alert')).toBeVisible();
   await expect(page.getByRole('alert')).toContainText('검증용 분석 연결 실패');
-  await expect(page.getByLabel('분석 질문')).toHaveValue('김주애의 북한 후계자 계승 가능성은? 근거와 전망을 분석해줘.');
+  await expect(page.getByLabel('분석 질문')).toHaveValue(PRIMARY_QUESTION);
   await expect(page.getByRole('button', { name: '분석 실행', exact: true })).toBeEnabled();
   await expect(page.locator('.research-activity.is-running')).toHaveCount(0);
 });

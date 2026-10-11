@@ -2,6 +2,17 @@ export type Facet = 'schedule' | 'participants' | 'purpose' | 'format' | 'analys
 export type VerificationStatus = 'corroborated' | 'single-origin' | 'conflicting' | 'insufficient' | 'independence-pending';
 export type CollectionMode = 'snapshot' | 'refresh' | 'live';
 export type SourceLanguage = 'ko' | 'en' | 'zh' | 'ja' | 'ru' | 'other';
+export interface SimulatedFeed {
+  id: string;
+  module: 'aviation' | 'maritime' | 'social' | 'satellite';
+  title: string;
+  description: string;
+  createdAt: string;
+  excludedFromAssessment: true;
+  points?: { at: string; longitude: number; latitude: number; state: 'received' | 'gap' }[];
+  posts?: { id: string; text: string; at: string; repeats: number }[];
+  cells?: { x: number; y: number; label: string }[];
+}
 
 export interface SourceDocument {
   id: string;
@@ -21,6 +32,7 @@ export interface SourceDocument {
   links?: string[];
   canonicalURL?: string;
   medium?: 'text' | 'image' | 'video' | 'satellite' | 'track' | 'patent' | 'social';
+  collectedVia?: SourceModule[];
   attribution?: { publisher: string; originalURL?: string; archive: boolean; control: 'dprk-state' | 'other' };
   media?: { url: string; caption: string; credit: string; kind: 'image' | 'video' | 'satellite'; capturedAt?: string;
     resolutionM?: number; cloudCover?: number; bbox?: number[]; analysis: 'caption-only' | 'metadata-only' | 'visual-reviewed';
@@ -227,7 +239,7 @@ export interface IntelOutlook extends IntelKeyJudgment {
 }
 export interface SourceTemporalPolicy {
   sourceId: string;
-  purpose: 'event' | 'framework' | 'precedent';
+  purpose: 'event' | 'framework' | 'precedent' | 'background';
   publicationInRange: boolean | null;
   reason: string;
 }
@@ -379,6 +391,9 @@ export interface WisdomGraph {
 }
 
 export interface AnalysisRun {
+  reportTitle?: string;
+  risk?: IntelRiskBrief;
+  simulatedFeeds?: SimulatedFeed[];
   imagery?: VisualFinding[];
   demo?: import('./demo.ts').DemoPlayback;
   id: string;
@@ -417,6 +432,46 @@ export interface AnalysisRun {
   wisdom?: WisdomGraph;
 }
 
+export type RiskLevel = 'low' | 'guarded' | 'elevated' | 'high' | 'critical' | 'unassessed';
+export type RiskLikelihood = 'unlikely' | 'plausible' | 'likely' | 'unassessed';
+export type RiskImpact = 'limited' | 'serious' | 'severe' | 'unassessed';
+export interface RiskEstimate {
+  id: string;
+  label: string;
+  summary: string;
+  likelihood: RiskLikelihood;
+  impact: RiskImpact;
+  level: RiskLevel;
+  claimIds: string[];
+  criterionIds: string[];
+  confidence: FrameworkJudgment['confidence'];
+  limitations: string[];
+}
+export interface RecommendedAction {
+  id: string;
+  title: string;
+  purpose: string;
+  priority: 'now' | 'next' | 'watch';
+  owner: string;
+  timing: string;
+  trigger: string;
+  completion: string;
+  claimIds: string[];
+  criterionIds: string[];
+}
+export interface IntelRiskBrief {
+  scope: string;
+  horizon: string;
+  asOf: string;
+  overall: RiskEstimate;
+  items: RiskEstimate[];
+  actions: RecommendedAction[];
+  method: 'qualitative-risk-matrix-v1';
+  verification: 'verified' | 'pending' | 'incomplete';
+  verifiedAt?: string;
+  rejected: string[];
+}
+
 export interface AnalysisInput {
   question: string;
   mode: CollectionMode;
@@ -424,6 +479,7 @@ export interface AnalysisInput {
   endDate?: string;
   languages?: SourceLanguage[];
   urls?: string[];
+  sourcePolicy?: 'all-public';
 }
 
 export interface ReviewInput {

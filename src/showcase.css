@@ -15,6 +15,11 @@
 .showcase-proof strong { font-size: 28px; color: #2c4a5d; font-weight: 500; }
 .showcase-proof span { font-size: 12px; color: #647782; line-height: 1.6; }
 .showcase-cases { margin: 44px 0; }
+.showcase-value { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:24px; margin:40px 0; }
+.showcase-value article { border-left:2px solid #a5bac6; padding-left:18px; }
+.showcase-value h2 { font-size:18px; line-height:1.6; color:#304b5e; margin:12px 0; }
+.showcase-value p { font-size:13px; line-height:1.9; color:#62747e; }
+@media (max-width:700px) { .showcase-value { grid-template-columns:1fr; gap:22px; } }
 .showcase-cases h2, .showcase-video h2 { font-size: 21px; color: #304b5e; }
 .showcase-cases > p, .showcase-video p { color: #62747e; font-size: 13px; line-height: 1.8; }
 .showcase-cases > div { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-top: 20px; }

@@ -10,11 +10,12 @@ import { mapConcurrent } from './concurrency.ts';
 import { repairAnswer } from './report-answer.ts';
 import { coordinatesMatchQuote } from './coordinates.ts';
 import { auditFramework, finalizeFramework, frameworkDraftSchema, frameworkPlanSchema, FRAMEWORK_INSTRUCTIONS, requiresCriteria, syncFrameworkAnswer, one } from './analysis-framework.ts';
+import { assessRisk, requiresRisk } from './risk-analysis.ts';
 import { applyTemporalPolicy, collectFramework, PRIMARY_FRAMEWORKS } from './framework-research.ts';
 import { publicSearchLabel, readPublicDocument, searchPublic, type SearchHit } from './public-sources.ts';
 import type { CriterionKnowledge } from './criterion-knowledge.ts';
 import { buildAnalysisOntology } from '../shared/analysis-ontology.ts';
-import { MODULE_IDS, SOURCE_MODULES } from '../shared/source-modules.ts';
+import { allSourcesRequested, MODULE_IDS, SOURCE_MODULES } from '../shared/source-modules.ts';
 import { DPRK_MEDIA, DPRK_ARCHIVE } from './dprk-media.ts';
 import { applySourceQuality } from './source-quality.ts';
 import { analyzeImagery } from './imagery-analysis.ts';
@@ -96,6 +97,7 @@ export interface ResearchDependencies {
 export async function research(input: AnalysisInput, onProgress: (event: ResearchTrace) => void,
   dependencies: ResearchDependencies = { model: cursorModel, search: searchPublic, read: readPublicDocument, searchLabel: publicSearchLabel, requireStrategy: true }): Promise<AnalysisRun> {
   const started = performance.now();
+  const allSources = input.sourcePolicy === 'all-public' || allSourcesRequested(input.question);
   const trace: ResearchTrace[] = [];
   const searches: ResearchSearch[] = [];
   const emit = (stage: string, message: string, status: ResearchTrace['status'] = 'running', extra: Partial<ResearchTrace> = {}) => {
@@ -129,8 +131,10 @@ export async function research(input: AnalysisInput, onProgress: (event: Researc
     + 'Write targets in Korean. For a question about participants, dates and announced purpose, use exactly 참가국, 실시 일정, 공식 발표 목적. '
     + 'Use government announcements and news independently; use papers only when relevant. Generate queries in the requested languages, '
     + 'Return strategy.sourcePlan with ONE entry for EVERY supplied source module: use, conditional or irrelevant, with question-specific relevance and access limitations. Review news, government, public SNS, images/video, satellite, aviation tracks, maritime/AIS, research/papers and patents. Do not force irrelevant modalities into a report or infer personal identity from satellite resolution. '
+    + 'When sourcePolicy=all-public the user explicitly requests investigating EVERY module: select use for all, explain its event/background/technical role and limits, and create at least one query for each module. Research/patents establish detection or methodology context, not proof of a current deployment. Never fabricate observations. Satellite bounding boxes must refer to an explicitly documented research area; no missing-feed fallback invented as real data. '
     + 'For 북한/DPRK/North Korea questions include state-media queries covering original publishers AND the public archive across ALL titles, not just KCNA. Discover additional outlets from archive catalog links. Known defunct/restricted outlets remain searchable historical archives; do not promise all outputs are collected. State outlets are coordinated source families, not independent votes. '
     + 'For 김주애/Kim Ju Ae succession require analysis.dimension=forecast, assess formal designation vs grooming, protocol/honorific changes, institutional posts/delegated duties, party/military elite signals, competing dynastic-display/regency hypotheses and uncertainty. Use basisRequirement analytic-indicator for research indicators, attributed-position for public institution assessments; no international law retrieval unless directly relevant. North Korean media often omit her personal name; query 자제분, 향도, respected/beloved daughter and context, not only 김주애. Do not turn NIS briefing reports into a DPRK official designation. '
+    + 'For risk-assessment questions separate the scoped risk event, future horizon, likelihood, conditional impact and evidence confidence. Use analytic indicators for independently observed incidents, actor claims, escalation/de-escalation and public safety notices. Capability demonstrations do not prove impending war. Recommendations follow from gaps, not additional fact-search targets. Risk-matrix principles are not official Korean military alert doctrine. '
     + 'at least one query per requested language, including Korean, Chinese, Japanese and Russian when selected. '
     + 'Use the requested dates and event context in queries. Respect queryBudget: one focused query per requested language and up to four extra queries for primary sources, state-media coverage or relevant imagery. '
     + 'For evaluative questions (e.g. blockade onset, legality, rule violations), return analysis: define the proposition and dimension, proposed criteria with observable requirements and counterevidence, critical premises, actor perspectives and separate framework queries BEFORE event queries. Criteria are proposals, not published definitions until independently verified. Include at least one critical criterion in the proposition dimension. Do not mistake lawful blockade requirements for onset requirements. Retrieve applicable laws, doctrine, country statements and published checklists only where relevant; classify a military manual and expert restatement accurately. Framework queries need not satisfy the event-language quota. Select relevant primary URLs into analysis.resources with criterionIds from the supplied repository catalog and user URLs; never fetch every legal text by default. Non-evaluative fact lookup may omit analysis. '
@@ -138,7 +142,7 @@ export async function research(input: AnalysisInput, onProgress: (event: Researc
     + 'Keep assumptions and hypotheses concise. Do not constrain questions to Freedom Edge. Never request private sources.',
     { primaryFrameworkRepositories: PRIMARY_FRAMEWORKS, sourceModules: SOURCE_MODULES, dprkMedia: DPRK_MEDIA, publicDprkArchive: DPRK_ARCHIVE,
       currentDate: new Date().toISOString().slice(0, 10), locale: 'ko-KR', question: input.question, startDate: input.startDate, endDate: input.endDate,
-      userURLs: input.urls ?? [], queryBudget: Math.min(12, (input.languages?.length ?? 5) + 4), languages: input.languages ?? ['ko', 'zh', 'ja', 'ru', 'en'] });
+      userURLs: input.urls ?? [], sourcePolicy: allSources ? 'all-public' : 'relevant', queryBudget: allSources ? 12 : Math.min(12, (input.languages?.length ?? 5) + 4), languages: input.languages ?? ['ko', 'zh', 'ja', 'ru', 'en'] });
   const plan = { ...rawPlan, strategy: rawPlan.strategy ? { ...rawPlan.strategy, evidenceRequirements: rawPlan.strategy.evidenceRequirements.map(r => ({
     ...r, disconfirmingEvidence: Array.isArray(r.disconfirmingEvidence) ? r.disconfirmingEvidence.join(' · ') : r.disconfirmingEvidence,
   })) } : undefined };
@@ -182,15 +186,23 @@ export async function research(input: AnalysisInput, onProgress: (event: Researc
       + 'Keep the SAME question/geography/event window. Each query must cite known criterionIds and purpose=event. '
       + 'Cover each requested language and both official and news modules. Search actual implemented acts, contemporaneous observations and positive counterevidence, not only announcements or the term blockade. '
       + 'Preserve selected sourcePlan modalities. For DPRK questions include state-media searches for Rodong Sinmun and all-title archive coverage, and image/video pages where relevant. For succession include newest institutional assessments and actual public appointments, without assuming grooming proves succession. '
+      + 'If sourcePolicy=all-public, cover ALL 11 modules with at least one focused query per module. For papers and patents explain technical or methodology context without claiming current deployment. For satellite use only supplied documented research-area coordinates; absent coordinates remain a gap. Keep genuine tracks distinct from authority warning documents. '
       + 'A missing public actor rule can be investigated but cannot be invented. Do not treat publication dates as an event window. Respect queryBudget.',
       { question: input.question, scope: plan.scope, period: { start: input.startDate, end: input.endDate }, criteria: framework.criteria, sourcePlan: plan.strategy?.sourcePlan, dprkMedia: DPRK_MEDIA,
-        languages: input.languages ?? ['ko', 'zh', 'ja', 'ru', 'en'], queryBudget: Math.min(12, (input.languages?.length ?? 5) + 4) });
+        sourcePolicy: allSources ? 'all-public' : 'relevant', languages: input.languages ?? ['ko', 'zh', 'ja', 'ru', 'en'], queryBudget: allSources ? 12 : Math.min(12, (input.languages?.length ?? 5) + 4) });
     if ((input.languages ?? ['ko', 'zh', 'ja', 'ru', 'en']).some(l => !refined.queries.some(q => q.language === l))
       || !refined.queries.some(q => q.module === 'official') || !refined.queries.some(q => q.module === 'news')
       || refined.queries.some(q => q.purpose !== 'event' || !q.criterionIds?.length || q.criterionIds.some(id => !framework.criteria.some(c => c.id === id))))
       throw new InputError('사건 검색 계획의 언어·모듈 또는 판단 기준 연결이 누락되었습니다.', 422);
     plan.queries = refined.queries;
     emit('사건 계획', `기준에 대응하는 사건 검색 ${plan.queries.length}개 준비`, 'complete', { taskId: 'event-plan' });
+  }
+  if (allSources) {
+    const terms = { official: '공식 발표', news: '최신 보도', 'state-media': '로동신문 KCNA 보존본', papers: 'risk assessment missile detection research', discussion: 'public discussion', social: '공개 게시물', images: '공개 사진 영상', satellite: 'Sentinel-2 satellite observations', aviation: 'civil aviation tracks notices', maritime: 'vessel tracks navigation warnings', patents: 'missile detection warning patent' };
+    const linked = framework?.criteria.map(c => c.id) ?? [];
+    for (const module of MODULE_IDS) if (!plan.queries.some(q => q.module === module)) plan.queries.push({ module, language: module === 'papers' || module === 'patents' || module === 'satellite' ? 'en' : 'ko', query: `${plan.topic.slice(0, 140)} ${terms[module]}`, purpose: 'event', criterionIds: linked });
+    if (plan.strategy?.sourcePlan) plan.strategy.sourcePlan = plan.strategy.sourcePlan.map(item => ({ ...item, decision: 'use', reason: item.decision === 'irrelevant' ? `사용자 요청에 따라 탐색합니다. ${item.reason} 사건 판단에 적합한 자료가 없으면 배경·공백으로 구분합니다.` : item.reason }));
+    emit('사건 계획', '11개 공개 자료 유형을 모두 탐색합니다. 접근 공백과 사건·배경 역할은 별도로 검증합니다.', 'complete', { taskId: 'all-source-coverage' });
   }
   if (/북한|DPRK|North Korea|김주애/i.test(input.question)) {
     const succession=/김주애|Ju[ -]?Ae/i.test(input.question);
@@ -282,9 +294,12 @@ export async function research(input: AnalysisInput, onProgress: (event: Researc
         try {
           const source = await dependencies.read(hit);
           const durationMs = Math.round(performance.now() - began);
-          if (sources.some(s => s.url === source.url)) {
+          const existing = sources.find(s => s.url === source.url);
+          if (existing) {
+            existing.collectedVia = [...new Set([...(existing.collectedVia ?? []), hit.module])];
             emit('중복', '이미 확보한 원문으로 연결되어 중복 수집을 생략했습니다.', 'complete', { ...info, durationMs }); return;
           }
+          source.collectedVia = [...new Set([...(source.collectedVia ?? []), hit.module])];
           sources.push(source);
           collections.push({ sourceId: source.id, state: 'verified', checkedAt: source.retrievedAt, message: `${source.publisher} · 공개 본문 확보` });
           emit('수집', `${source.publisher} · ${source.language.toUpperCase()} · ${source.body.length}자 확보`, 'complete', { ...info, durationMs, detail: source.title });
@@ -562,6 +577,12 @@ export async function research(input: AnalysisInput, onProgress: (event: Researc
   }
   timing('그래프 추론');
   emit('추론', '사건 관계와 근거를 연결한 해석을 확인했습니다.', 'complete', { taskId: 'inference' });
+  if (requiresRisk(run.question) && run.analysis) {
+    emit('위험 평가', '가능성과 영향을 구분해 위험도와 권장 추가 액션을 만들고 독립 검증합니다.', 'running', { taskId: 'risk-audit' });
+    run.risk = await assessRisk(run, dependencies.model);
+    timing('위험도·권장 액션 대조');
+    emit('위험 평가', `위험 항목 ${run.risk.items.length}개 · 권장 액션 ${run.risk.actions.length}개 · ${run.risk.verification === 'verified' ? '근거 대조 완료' : '판단 유보'}`, run.risk.verification === 'verified' ? 'complete' : 'failed', { taskId: 'risk-audit' });
+  }
   run.durationMs = Math.round(performance.now() - started);
   run.summary = buildSummary(run);
   updateStats(run);

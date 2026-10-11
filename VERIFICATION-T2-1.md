@@ -218,7 +218,7 @@ CAPTCHA, 정상적인 결과 없음, 해석할 수 없는 응답을 구분하고
 
 검증 결과: **단위 테스트 113개, 브라우저 테스트 18개, TypeScript·Vite 빌드, 시연 패키지 3개 검증 통과**. 브라우저는 실제 API/저장소를 사용해 지표 원문, 인용, 이미지 응답, 주요 판단·조건부 전망, JSON-LD, 승인 저장, 출처 변경 후 승인 해제·전망 보류, 내보내기와 모바일을 검증했다. 동일 브리핑 병합, 독립성의 양방향 검증, 북한 통제 매체 간 독립성 차단, 캡션만 있는 판독 거부, 이미지 해시 변조, 형식 보완 시 부정 판정 보존, 전망 전제만 변경된 검토 무효화도 검사했다.
 
-최신 로컬 확인은 `http://127.0.0.1:5188`의 별도 저장소 `.local/nk-demo-store.json`에서 수행했다. `TRACE_MEDIA_DIRECTORY=.local/cold-media-check`로 기존 사진 캐시가 없는 환경에서도 패키지의 이미지가 HTTP 200으로 표시됐다. 확인 복사본 ID는 `885c2e97-7a08-4db6-a5c6-06063744b6a8`이며 브라우저 예외·모바일 가로 넘침은 없었다. 화면은 `output/previews/nk-report-{overview,indicators,imagery,outlook,mobile}.png`에 기록했다. 원래 실행 중인 5176 서버와 사용자 저장소는 변경하지 않았다.
+최신 로컬 확인은 `http://127.0.0.1:5188`의 별도 저장소 `.local/nk-demo-store.json`에서 수행했다. `FUSIONBRIEF_MEDIA_DIRECTORY=.local/cold-media-check`로 기존 사진 캐시가 없는 환경에서도 패키지의 이미지가 HTTP 200으로 표시됐다. 확인 복사본 ID는 `885c2e97-7a08-4db6-a5c6-06063744b6a8`이며 브라우저 예외·모바일 가로 넘침은 없었다. 화면은 `output/previews/nk-report-{overview,indicators,imagery,outlook,mobile}.png`에 기록했다. 원래 실행 중인 5176 서버와 사용자 저장소는 변경하지 않았다.
 
 현재 경계: 항공·해양·SNS·특허는 공개 색인 문서/발표 검색·본문 분석 경로다. 실시간 전 세계 AIS/ADS-B, 인증 플랫폼 전체 댓글, 상용 고해상도 위성, 영상 전체 프레임 판독은 구현하지 않았다. 북한의 전체 매체/발행물 접근을 보증하지 않으며 자동 검증은 전문가의 사실성 검토를 대체하지 않는다.
 
@@ -230,7 +230,7 @@ CAPTCHA, 정상적인 결과 없음, 해석할 수 없는 응답을 구분하고
 
 검증: TypeScript·Vite 빌드 통과. 브라우저 전체 18개 통과 후 출처 부록 정리를 반영한 기준 보고서·김주애 흐름 4개를 다시 검증해 통과했다. 실제 원문·기준 구절 열기, 인용 번호 대응, 이미지 표시, 승인·검토 버전, 재검증 보류와 Markdown 내보내기를 확인했다. 인쇄 매체에서는 앱 탐색·검토 도구를 숨기고 문서와 주석을 표시한다. `beforeprint`에서 접힌 핵심 판단·이미지 판독 한계를 펼치며 `afterprint`에서 원래 상태로 복원한다. Chromium에서 실제 PDF를 만들고 텍스트와 첫 페이지를 확인했다. A4 10쪽, 페이지 번호 `1 / 10`부터 `10 / 10`, 원문 URL, 추가 판단 한계와 문서 끝 표기가 포함된다.
 
-로컬 확인: `http://127.0.0.1:5188`, 보고서 ID `d035f3e9-1077-4213-bd4b-086f48279603`, 문서번호 `TRACE-20261010-D035F3E9 · v1`. 1440px 데스크톱과 390px 모바일에서 브라우저 예외·가로 넘침이 없었다. 미리보기는 `output/previews/nk-document-{desktop,mobile,indicators,mobile-indicators,imagery,outlook,sources}.png`, 인쇄 결과는 `output/previews/nk-intelligence-report.pdf`다. 기존 5176 서버·사용자 저장소는 변경하지 않았다.
+로컬 확인: `http://127.0.0.1:5188`, 보고서 ID `d035f3e9-1077-4213-bd4b-086f48279603`, 문서번호 `FUSIONBRIEF-20261010-D035F3E9 · v1`. 1440px 데스크톱과 390px 모바일에서 브라우저 예외·가로 넘침이 없었다. 미리보기는 `output/previews/nk-document-{desktop,mobile,indicators,mobile-indicators,imagery,outlook,sources}.png`, 인쇄 결과는 `output/previews/nk-intelligence-report.pdf`다. 기존 5176 서버·사용자 저장소는 변경하지 않았다.
 
 
 ## 2026-10-10 · 기본 질문·실제 조사 진행·보고서 자동 전환
@@ -254,7 +254,16 @@ CAPTCHA, 정상적인 결과 없음, 해석할 수 없는 응답을 구분하고
 
 ## 제출용 공개 데모 검증 (2026-10-11 KST)
 
-- [공개 웹 데모](https://chanusong.github.io/trace-osint-copilot/)의 4개 보존 사례, 정확한 원문 강조, 공개 이미지, Markdown·JSON-LD 내보내기, 실제 좌표 지도, 390px 화면을 브라우저로 확인했다. 최종 실행의 브라우저 오류와 데이터 변경 요청은 0건이다. 구조화 기록은 `output/submission/demo-verification.json`에 있다.
+- [공개 웹 데모](https://chanusong.github.io/fusionbrief-osint/)의 4개 보존 사례, 정확한 원문 강조, 공개 이미지, Markdown·JSON-LD 내보내기, 실제 좌표 지도, 390px 화면을 브라우저로 확인했다. 최종 실행의 브라우저 오류와 데이터 변경 요청은 0건이다. 구조화 기록은 `output/submission/demo-verification.json`에 있다.
 - 실제 UI 조작과 실제 수집 중 보존한 화면 기록으로 1920×1080, 2분 55초의 한국어 설명 영상을 제작했다. [YouTube 링크](https://youtu.be/TZ5jBSRmG78)는 일부 공개이며 공개 oEmbed 응답을 확인했다. 실시간 온라인 검색·분석으로 표시하지 않는다.
 - 관계 그래프의 화면상 글자 크기와 간격을 조정했다. 지도 확대 직후 다른 화면으로 이동할 때 Leaflet의 지연된 확대 처리에서 오류가 발생해, 확대 애니메이션과 초기 범위 맞춤 애니메이션을 끄고 정리된 지도에 대한 크기 변경 처리를 차단했다. 빠른 지도 확대·탭 전환 3회와 기존 APAC 전체 흐름의 브라우저 검사 2개가 통과했다.
 - 단위 테스트 116개와 기존 브라우저 테스트 18개 통과 후 위 회귀 검사를 추가했다. 최종 TypeScript·앱 빌드·정적 웹 데모 빌드도 통과했다.
+
+
+## 2026-10-11 FUSIONBRIEF 새 대표 사례
+
+실제 원문 27건, 의미·번역 검증을 통과한 인용 18건, 판단 12건, 위험 항목 3개, 권장 액션 5개. 11종 공개 자료를 조사했고 실제 Sentinel-2 관측·픽셀 설명을 별도 검증했습니다. 항적·선박·SNS 모의 피드는 실제 근거와 평가에서 제외했습니다. 원문 인용과 근거 온톨로지의 무결성 검증을 통과했습니다. 검증된 기준은 2개이며 나머지 기준의 미확인 상태와 낮은 근거 신뢰도를 유지합니다.
+
+검증 단계 5분 57초, 전체 재개 실행 19분 14초. 일부 원문·응답을 재사용한 실제 기록이며 신규 질문의 보장 처리 시간이 아닙니다. 수작업 74분은 가정입니다.
+
+하단 독립 KG를 제거하고 핵심 판단·문장에 연결된 근거 그래프를 모달로 제공합니다. 새로운 PDF는 output/submission/fusionbrief-risk-report.pdf, 8개 스크린샷은 output/submission/screenshots/fusionbrief-*.png, 영상은 output/submission/fusionbrief-walkthrough.mp4입니다.

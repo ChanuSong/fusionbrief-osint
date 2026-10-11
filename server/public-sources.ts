@@ -70,7 +70,7 @@ export async function publicFetch(value: string, headers: Record<string, string>
   return new Promise((resolve, reject) => {
     const request = httpsRequest(url, {
       agent: false, family: target.family, signal: AbortSignal.timeout(20000),
-      headers: { 'User-Agent': 'TRACE-OSINT/0.2 (public-source-reader)', ...headers },
+      headers: { 'User-Agent': 'FUSIONBRIEF-OSINT/0.2 (public-source-reader)', ...headers },
       lookup: (_hostname, _options, callback) => callback(null, target.address, target.family),
     }, response => {
       const code = response.statusCode ?? 500;
@@ -137,7 +137,7 @@ export async function searchPublic(query: ResearchQuery): Promise<SearchHit[]> {
         : query.module === 'maritime' ? '(AIS OR IMO OR vessel track OR port OR 항적 OR 선박)'
           : query.module === 'social' ? '(site:x.com OR site:bsky.app OR site:reddit.com OR site:t.me OR site:youtube.com)' : '';
   const scoped = { ...query, query: scope ? `${query.query} ${scope}` : query.query };
-  if (query.module !== 'papers' && (process.env.TRACE_SEARCH_PROVIDER ?? 'cursor') === 'cursor') return searchCursor(scoped);
+  if (query.module !== 'papers' && ((process.env.FUSIONBRIEF_SEARCH_PROVIDER ?? process.env.TRACE_SEARCH_PROVIDER) ?? 'cursor') === 'cursor') return searchCursor(scoped);
   const officialDomains = query.purpose === 'framework' ? `${OFFICIAL_DOMAINS} OR site:un.org OR site:icj-cij.org OR site:icrc.org` : OFFICIAL_DOMAINS;
   const searchQuery = query.module === 'official' ? `${query.query} (${officialDomains})` : scoped.query;
   if (query.module === 'papers') {
@@ -147,7 +147,7 @@ export async function searchPublic(query: ResearchQuery): Promise<SearchHit[]> {
     return data.message.items.map(item => ({ url: `https://api.crossref.org/works/${encodeURIComponent(item.DOI)}`,
       title: item.title?.[0] ?? item.DOI, module: query.module, language: query.language }));
   }
-  if (process.env.TRACE_SEARCH_PROVIDER === 'brave') {
+  if ((process.env.FUSIONBRIEF_SEARCH_PROVIDER ?? process.env.TRACE_SEARCH_PROVIDER) === 'brave') {
     if (!process.env.BRAVE_SEARCH_API_KEY) throw new Error('Brave Search · API 키 설정 없음');
     const url = new URL('https://api.search.brave.com/res/v1/web/search');
     url.searchParams.set('q', searchQuery); url.searchParams.set('count', '5');
@@ -164,7 +164,7 @@ export async function searchPublic(query: ResearchQuery): Promise<SearchHit[]> {
 export function publicSearchLabel(query: ResearchQuery): string {
   if (query.module === 'satellite') return 'Earth Search · Sentinel-2 STAC';
   if (query.module === 'papers') return 'Crossref';
-  const provider = process.env.TRACE_SEARCH_PROVIDER ?? 'cursor';
+  const provider = (process.env.FUSIONBRIEF_SEARCH_PROVIDER ?? process.env.TRACE_SEARCH_PROVIDER) ?? 'cursor';
   if (provider === 'cursor') return 'Cursor WebSearch';
   if (provider === 'brave') return 'Brave Search';
   if (provider === 'duckduckgo') return 'DuckDuckGo';
@@ -199,7 +199,7 @@ export async function readPublicDocument(hit: SearchHit): Promise<SourceDocument
   let media: SourceDocument['media'];
   let format: SourceDocument['format'] = 'html';
   if (response.contentType.includes('pdf') || response.body.subarray(0, 5).toString() === '%PDF-') {
-    const directory = await mkdtemp(join(tmpdir(), 'trace-pdf-'));
+    const directory = await mkdtemp(join(tmpdir(), 'fusionbrief-pdf-'));
     try {
       const file = join(directory, 'document.pdf');
       await writeFile(file, response.body);
@@ -238,6 +238,7 @@ export async function readPublicDocument(hit: SearchHit): Promise<SourceDocument
     language = languageOf($('html').attr('lang'), language);
     const date = $('meta[property="article:published_time"],meta[name="pubdate"],meta[name="date"],meta[name="DC.date.issued"]').first().attr('content');
     if (date) publishedAt = metadataDate(date);
+    if (url.hostname === 'arxiv.org') publishedAt ||= metadataDate(($('meta[name="citation_date"]').attr('content') ?? '').replaceAll('/','-'));
     for (const node of $('script[type="application/ld+json"]').toArray()) try {
       const raw=JSON.parse($(node).text()); const entries=Array.isArray(raw) ? raw : Array.isArray(raw['@graph']) ? raw['@graph'] : [raw];
       const record=entries.find((item:Record<string,unknown>)=>['NewsArticle','Article','ScholarlyArticle'].includes(String(item['@type']))
@@ -279,7 +280,7 @@ export async function readPublicDocument(hit: SearchHit): Promise<SourceDocument
       } catch { return null; }
     }).get().filter(item=>item && item.caption.length>10).slice(0,6);
     const leadImage = $('meta[property="og:image"]').attr('content');
-    if (!media.length && leadImage) try { media.push({url:publicURL(new URL(leadImage,url).href).href,caption:'페이지 대표 이미지 · 본문과의 연관성 및 인물 신원은 추가 확인 필요',credit:attribution?.publisher ?? url.hostname,kind:'image',analysis:'caption-only'}); } catch { /* no unsafe image URLs */ }
+    if (!media.length && leadImage && !/(?:logo|favicon)/i.test(leadImage)) try { media.push({url:publicURL(new URL(leadImage,url).href).href,caption:'페이지 대표 이미지 · 본문과의 연관성 및 인물 신원은 추가 확인 필요',credit:attribution?.publisher ?? url.hostname,kind:'image',analysis:'caption-only'}); } catch { /* no unsafe image URLs */ }
     $('script,style,noscript,nav,footer,header,aside,form').remove();
     $('p,li,h1,h2,h3,br').append('\n');
     const candidates=$('article, .article, .entry-content, .field--name-body, .article-body, .story-body, .view_con, #articleBodyContents, #article-view-content-div').toArray()
@@ -296,7 +297,7 @@ export async function readPublicDocument(hit: SearchHit): Promise<SourceDocument
   if (media?.length) await preserveMedia(media);
   language = detectLanguage(body) === 'other' ? language : detectLanguage(body);
   return { id: `source-${randomUUID()}`, title: (title || hit.title).slice(0,400), publisher: url.hostname.replace(/^www\./, ''),
-    type: format === 'api' ? 'paper' : attribution?.archive ? 'archive' : /(^|\.)ktv\.go\.kr$/.test(url.hostname) ? 'news' : officialHost(url.hostname) || isDprkHost(url.hostname) ? 'official' : 'news',
+    type: format === 'api' || hit.module === 'papers' ? 'paper' : attribution?.archive ? 'archive' : /(^|\.)ktv\.go\.kr$/.test(url.hostname) ? 'news' : officialHost(url.hostname) || isDprkHost(url.hostname) ? 'official' : 'news',
     language, url: response.url, publishedAt, retrievedAt, body, links, canonicalURL,
     hash: createHash('sha256').update(body).digest('hex'), format,
     snapshotKind: format === 'api' ? 'abstract' : 'document', verificationMethod: format === 'api' ? 'api' : format === 'pdf' ? 'pdf-text' : 'http',

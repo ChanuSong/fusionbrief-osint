@@ -4,7 +4,7 @@ import { reportContent } from '../../shared/report-content.ts';
 import { dateTime, dotDate } from '../lib.ts';
 
 export function documentNumber(run: AnalysisRun) {
-  return `TRACE-${run.createdAt.slice(0, 10).replaceAll('-', '')}-${run.id.slice(0, 8).toUpperCase()}`;
+  return `FUSIONBRIEF-${run.createdAt.slice(0, 10).replaceAll('-', '')}-${run.id.slice(0, 8).toUpperCase()}`;
 }
 
 /** The reading and print surface. Investigation controls live outside this document. */
@@ -17,7 +17,7 @@ export function ReportDocument({ run, onEvidence, onBasis, children }: {
   const ref = useRef<HTMLElement>(null);
   useEffect(() => {
     const previous = document.title;
-    document.title = `${run.question} | TRACE`;
+    document.title = `${run.question} | FUSIONBRIEF`;
     return () => { document.title = previous; };
   }, [run.question]);
   useEffect(() => {
@@ -56,10 +56,10 @@ export function ReportDocument({ run, onEvidence, onBasis, children }: {
 
   return <article className="report-document" aria-labelledby="document-title" ref={ref}>
     <header className="document-frontmatter">
-      <div className="document-running-head"><span>TRACE</span><span>공개정보 기반 분석</span></div>
+      <div className="document-running-head"><span>FUSIONBRIEF</span><span>공개정보 기반 분석</span></div>
       <div className="document-title-block">
         <p className="document-type">정보분석 보고서</p>
-        <h1 id="document-title">{run.question}</h1>
+        <h1 id="document-title">{run.reportTitle ?? run.question}</h1>
       </div>
       <dl className="document-metadata">
         <div><dt>문서번호</dt><dd className="document-number">{documentNumber(run)} · v{run.version}</dd></div>
@@ -68,6 +68,7 @@ export function ReportDocument({ run, onEvidence, onBasis, children }: {
         <div><dt>검토 상태</dt><dd>{status}{run.analysis?.verification !== 'verified' ? ' · 근거 재검증 필요' : ''}</dd></div>
       </dl>
       <p className="document-scope"><strong>분석 기간</strong><span>{period}</span></p>
+      {run.reportTitle ? <details className="document-request"><summary>분석 요청과 조사 범위</summary><p>{run.question}</p></details> : null}
       {run.demo ? <p className="document-provenance">사전 수집·검증 자료를 사용한 분석 · 원문 확인과 분석가 검토는 현재 보고서에 기록</p> : null}
     </header>
 
@@ -97,7 +98,7 @@ export function ReportDocument({ run, onEvidence, onBasis, children }: {
 
     <footer className="document-footer">
       {run.approval ? <p className="document-signoff"><strong>{status}</strong> · {run.approval.reviewer} · {dateTime(run.approval.createdAt)} · v{run.approval.version}</p> : null}
-      <p className="intel-report-meta">미 육군 <a href="https://rdl.train.army.mil/catalog-ws/view/100.ATSC/F4DDBAD5-3131-4C2A-9E00-CCACC087E984-1408655126204/ATP2_33x4wc1.pdf" target="_blank" rel="noreferrer">ATP 2-33.4</a> 및 <a href="https://www.dni.gov/files/documents/ICD/ICD-203.pdf" target="_blank" rel="noreferrer">ICD 203</a>의 공개 분석 원칙을 참고한 TRACE 양식입니다.</p>
+      <p className="intel-report-meta">미 육군 <a href="https://rdl.train.army.mil/catalog-ws/view/100.ATSC/F4DDBAD5-3131-4C2A-9E00-CCACC087E984-1408655126204/ATP2_33x4wc1.pdf" target="_blank" rel="noreferrer">ATP 2-33.4</a> 및 <a href="https://www.dni.gov/files/documents/ICD/ICD-203.pdf" target="_blank" rel="noreferrer">ICD 203</a>의 공개 분석 원칙을 참고한 FUSIONBRIEF 양식입니다.</p>
       <div className="document-endmark"><span>{documentNumber(run)} · v{run.version}</span><span>문서 끝</span></div>
     </footer>
   </article>;

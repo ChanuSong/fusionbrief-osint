@@ -8,8 +8,8 @@ const output = 'dist-showcase';
 await mkdir(`${output}/reports`, { recursive: true });
 await mkdir(`${output}/exports`, { recursive: true });
 await rename(`${output}/showcase.html`, `${output}/index.html`);
-const catalog: { id: string; title: string; subtitle: string; file: string; documents: number; citations: number }[] = [];
-for (const id of ['nk-succession', 'taiwan-strait-2026', 'nk-pow-disclosure']) {
+const catalog: { id: string; title: string; subtitle: string; file: string; documents: number; citations: number; criteria: number; actions: number }[] = [];
+for (const id of ['nk-escalation-risk', 'nk-succession', 'taiwan-strait-2026', 'nk-pow-disclosure']) {
   const pack = JSON.parse(await readFile(`data/demo/${id}.json`, 'utf8')) as DemoPackage;
   validateDemo(pack);
   const run = structuredClone(pack.run);
@@ -22,11 +22,11 @@ await save(live, 'latest-live', '김주애 승계 · 새 질문의 실제 실행
 await writeFile(`${output}/reports/catalog.json`, JSON.stringify(catalog));
 await cp('data/demo/media', `${output}/media`, { recursive: true });
 await cp('output/submission/screenshots', `${output}/screenshots`, { recursive: true });
-await cp('output/submission/trace-walkthrough.mp4', `${output}/trace-walkthrough.mp4`);
+await cp('output/submission/fusionbrief-walkthrough.mp4', `${output}/fusionbrief-walkthrough.mp4`);
 async function save(run: AnalysisRun, id: string, title: string, subtitle: string) {
   const file = `reports/${id}.json`;
   await writeFile(`${output}/${file}`, JSON.stringify(run));
   await writeFile(`${output}/exports/${run.id}.md`, exportMarkdown(run));
   await writeFile(`${output}/exports/${run.id}.jsonld`, JSON.stringify(ontologyJSONLD(buildAnalysisOntology(run))));
-  catalog.push({ id, title, subtitle, file, documents: run.sources.length, citations: run.evidence.length });
+  catalog.push({ id, title, subtitle, file, documents: run.sources.length, citations: run.evidence.length, criteria: run.analysis?.criteria.filter(c => c.basisStatus === 'verified').length ?? 0, actions: run.risk?.actions.length ?? 0 });
 }

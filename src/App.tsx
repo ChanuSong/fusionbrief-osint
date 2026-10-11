@@ -1,3 +1,4 @@
+import { PRIMARY_QUESTION } from '../shared/primary-scenario.ts';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Check, LoaderCircle, X } from 'lucide-react';
 import type { CriterionBasis, AnalysisRun, CollectionMode, Dataset, Evidence, ReportApproval, ResearchTrace, ReviewInput, SourceDocument, SourceLanguage } from '../shared/types.ts';
@@ -14,7 +15,7 @@ import { originColors, request, type RecentRun } from './lib.ts';
 interface Bootstrap { dataset: Dataset; questions: string[]; recentRuns: RecentRun[]; capabilities: { available: boolean; model: string; message: string }; }
 interface Job { id: string; state: 'running' | 'complete' | 'failed'; trace: ResearchTrace[]; run?: AnalysisRun; error?: string; }
 
-const DEFAULT_QUESTION = '김주애의 북한 후계자 계승 가능성은? 근거와 전망을 분석해줘.';
+const DEFAULT_QUESTION = PRIMARY_QUESTION;
 const SNAPSHOT_QUESTION = '2024년 6월 첫 프리덤 에지의 일정, 참가국, 발표 목적을 정리하고 원출처를 구분해줘.';
 const preferredClaim = (run: AnalysisRun) => run.claims.find(c => c.id === 'participants')?.id ?? run.claims[0]?.id ?? '';
 
@@ -194,7 +195,7 @@ export default function App() {
       historyOpen={historyOpen} onHistory={setHistoryOpen} />
     <main id="main" className="main-content">
       <header className="topbar">
-        <nav aria-label="현재 위치" className="breadcrumb"><span>Fusion OSINT Copilot</span><span>/</span>
+        <nav aria-label="현재 위치" className="breadcrumb"><span>다중출처 수집·교차검증·인텔 리포트</span><span>/</span>
           <strong>{tab === 'sources' ? '공개 자료' : tab === 'reviews' ? '검토 기록' : analyzing ? '분석 진행' : run && !editing ? `보고서 v${run.version}` : '새 분석'}</strong></nav>
       </header>
       <div className={`page-content ${!run && !analyzing && tab === 'workspace' ? 'start-page' : ''}`}>
