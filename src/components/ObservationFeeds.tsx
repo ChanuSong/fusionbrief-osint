@@ -24,7 +24,7 @@ function ObservationMap({feed}:{feed:ObservationFeed}){
   },[feed]);
   return <div ref={host} className="observation-map" role="img" aria-label={`${feed.provider} 실제 수신 위치 · ${feed.region}`}/>;
 }
-export function ObservationFeeds(){
+export function ObservationFeeds({question=''}:{question?:string}){
   const [bundle,setBundle]=useState<ObservationBundle>(),[selected,setSelected]=useState('opensky'),[busy,setBusy]=useState(false),[error,setError]=useState('');
   const read=useCallback(async (refresh=false)=>{setBusy(true);setError('');try{
     const response=await fetch(showcase?publicResource('observation-feeds.json'):'/api/observations',{method:refresh&&!showcase?'POST':'GET'});
@@ -36,11 +36,23 @@ export function ObservationFeeds(){
   const vesselPositions=bundle?.feeds.find(f=>f.id==='eastasia-ais')?.records??[];
   const vesselSummaries=bundle?.feeds.find(f=>f.id==='taurus-ais-summary')?.records??[];
   const portRecords=bundle?.feeds.find(f=>f.id==='incheon-port')?.records??[];
+  const operational=/미사일|운항|항공|해상|접경/i.test(question);
+  const staleVessel=vesselPositions.find(r=>{
+    const raw=r.fields?.['수신 시각 (원문)']?.slice(0,10);
+    return raw&&bundle&&Date.parse(bundle.collectedAt.slice(0,10))-Date.parse(raw)>2*86400000;
+  });
+  const relatedSummary=vesselSummaries.find(r=>r.id===staleVessel?.id);
+  const socialLead=bundle?.feeds.find(f=>f.id==='38north-social')?.records.find(r=>/Panghyon/i.test(r.text??''));
   return <div id="report-observations" className="actual-observations" aria-labelledby="observations-title">
     <div className="observation-heading"><div><h3 id="observations-title">실제 공개 관측 피드</h3><p>수신 위치 · 항만 기록 · 공개 SNS 원문</p></div>{!showcase?<button className="secondary-button" onClick={()=>void read(true)} disabled={busy}>{busy?'실제 피드 수집 중…':'실제 피드 새로 수집'}</button>:null}</div>
     <p className="observation-scope-note">보고서 평가 이후 추가 확보한 관측입니다. 수집 시점과 지역을 확인한 뒤 재평가해야 하며, 기존 위험도에는 자동 반영하지 않습니다.</p>
     {error?<p role="alert">{error}</p>:null}
-    {bundle?<><p className="observation-stats">수집 {time(bundle.collectedAt)} · 응답 확보 {bundle.feeds.filter(f=>f.state==='collected').length}/{bundle.feeds.length}개 피드 · 항공 식별자 대조 {bundle.crossChecks.length}건</p>
+    {bundle?<><section className="observation-decision" aria-label="관측의 분석 의미"><h4>이 관측에서 무엇을 봐야 하나</h4>
+      {operational?<div className="observation-priority"><strong>민간 운항 영향은 아직 판단할 수 없습니다</strong><p>현재 수신한 위치만으로는 발사 전후의 항로 변경·운항 제한을 확인할 수 없습니다. 항공기·선박 수를 안전 지표로 해석하지 않습니다.</p><p><b>우선 확인</b> · 관련 FIR NOTAM·NAVAREA 경보 원문과 발사 전후 항적을 같은 시각·구역으로 대조해야 합니다. <a href="#report-actions">권장 액션 보기 →</a></p></div>:null}
+      {staleVessel?<div className="observation-finding"><span>① 데이터가 만드는 오판 방지</span><strong>{staleVessel.label}의 위치는 현재 위치로 쓰면 안 됩니다</strong><p>MyShipTracking 위치 수신: <b>{staleVessel.fields?.['수신 시각 (원문)']}</b>{relatedSummary?<> · 같은 MMSI의 VesselFinder 상태 수신: <b>{relatedSummary.fields?.['수신 시각 (원문)']}</b></>:null}. 같은 선박이어도 관측 시점이 달라, 두 위치·상태를 동일 시점의 충돌로 처리하지 않습니다.</p><button className="ghost-button" onClick={()=>setSelected('eastasia-ais')}>해당 선박 원문·위치 확인 →</button></div>:null}
+      {socialLead?<div className="observation-finding"><span>② 후속 조사 단서</span><strong>방현 시설 확장 가능성에 관한 공개 분석</strong><p>38 North가 {time(socialLead.observedAt)} 게시한 시설 변화 분석입니다. 추가 위성영상 대조의 단서이며, 이번 미사일 발사나 임박한 공격을 확인한 자료로 사용하지 않습니다.</p><a href={socialLead.url} target="_blank" rel="noreferrer">해당 SNS 원문 확인 ↗</a></div>:null}
+      <p className="observation-assessment-state">보고서 위험도 · 기존 평가 유지 / 위 관측은 재평가 전까지 판단 근거에 미반영</p>
+    </section><p className="observation-stats">수집 {time(bundle.collectedAt)} · 응답 확보 {bundle.feeds.filter(f=>f.state==='collected').length}/{bundle.feeds.length}개 피드 · 항공 식별자 대조 {bundle.crossChecks.length}건</p>
       <div className="observation-tabs" role="group" aria-label="실제 공개 피드 선택">{orderedFeeds.map(f=><button key={f.id} aria-pressed={active?.id===f.id} onClick={()=>setSelected(f.id)}>{f.provider}<span>{f.state==='collected'?`${f.count}건`:f.state==='empty'?'관측 없음':'수집 실패'}</span></button>)}</div>
       {active?<article className="actual-feed"><div className="observation-heading"><h4>{active.title}</h4><span className="actual-feed-badge">{active.state==='collected'?'실제 수집':active.state==='empty'?'실제 조회 · 결과 없음':'접근 실패'}</span></div>
         <p><strong>관측 범위</strong> · {active.region}</p><p className={active.scope==='outside-region'?'outside-scope':''}>{active.scope==='outside-region'?'한반도 사례의 사건 근거로 사용하지 않습니다. ':''}원문 수집 {time(active.collectedAt)} · 최근 관측/게시 {time(active.dataAt)}</p>
