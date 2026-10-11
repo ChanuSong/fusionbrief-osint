@@ -23,6 +23,16 @@ await writeFile(`${output}/reports/catalog.json`, JSON.stringify(catalog));
 await cp('data/demo/media', `${output}/media`, { recursive: true });
 await cp('output/submission/screenshots', `${output}/screenshots`, { recursive: true });
 await cp('output/submission/fusionbrief-walkthrough.mp4', `${output}/fusionbrief-walkthrough.mp4`);
+try {
+  let source='.local/observation-feeds';
+  let raw:string;
+  try{raw=await readFile(`${source}/latest.json`,'utf8');}
+  catch(error){if((error as NodeJS.ErrnoException).code!=='ENOENT')throw error;source='data/showcase/observations';raw=await readFile(`${source}/latest.json`,'utf8');}
+  const bundle=JSON.parse(raw) as import('../shared/observation-feeds.ts').ObservationBundle;
+  await writeFile(`${output}/observation-feeds.json`,JSON.stringify(bundle));
+  await mkdir(`${output}/observations`,{recursive:true});
+  for(const feed of bundle.feeds)if(feed.snapshotHash)await cp(`${source}/${feed.snapshotHash}.json`,`${output}/observations/${feed.snapshotHash}.json`);
+}catch(error){if((error as NodeJS.ErrnoException).code!=='ENOENT')throw error;}
 async function save(run: AnalysisRun, id: string, title: string, subtitle: string) {
   const file = `reports/${id}.json`;
   await writeFile(`${output}/${file}`, JSON.stringify(run));

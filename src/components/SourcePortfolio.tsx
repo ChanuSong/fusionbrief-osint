@@ -4,6 +4,7 @@ import { sourcePortfolio } from '../../shared/source-portfolio.ts';
 import { allSourcesRequested, SOURCE_MODULES } from '../../shared/source-modules.ts';
 import { mediaURL } from '../resources.ts';
 import '../source-portfolio.css';
+import { ObservationFeeds } from './ObservationFeeds.tsx';
 export function SourcePortfolio({ run, onEvidence }: { run: AnalysisRun; onEvidence: (e: Evidence) => void }) {
   const [selected, setSelected] = useState('');
   if (!allSourcesRequested(run.question) && !run.simulatedFeeds?.length) return null;
@@ -24,6 +25,7 @@ export function SourcePortfolio({ run, onEvidence }: { run: AnalysisRun; onEvide
         return <li key={source.id}><a href={source.url} target="_blank" rel="noreferrer">{source.title}</a><small>{source.publisher} · {source.publishedAt || '발행일 미확인'} · {policy ? role[policy.purpose] : quote ? '사건 근거' : '수집 원문'}</small>{image && (channel.module==='satellite' || channel.module==='images') ? <figure className="portfolio-image"><img src={mediaURL(image.hash!)} alt={image.caption} loading="lazy" /><figcaption>{image.credit} · {image.capturedAt ?? source.publishedAt} · {image.analysis==='visual-reviewed' ? '검증된 관측은 별도 본문 참조' : '수집 미리보기 · 픽셀 판독 미검증'}</figcaption></figure> : null}{quote ? <button className="portfolio-quote" onClick={() => onEvidence(quote)}>연결된 인용 보기</button> : null}</li>;
       })}</ul> : <p className="portfolio-gap">실제 사건을 판단할 원문이 없습니다. 모의 데이터는 이 공백의 증거를 대신하지 않습니다.</p>}
     </details>)}</div>
+    <ObservationFeeds />
     {active ? <div className="simulated-workspace">
       <div className="simulation-heading"><h3>모의 피드 대조 시연</h3><span>모의 데이터 · 실제 위험도에 미반영</span></div>
       <p>외부 피드가 확보되지 않은 경우의 기능을 보여주는 합성 자료입니다. 실제 항공기·선박·게시물·군사 활동을 의미하지 않습니다.</p>

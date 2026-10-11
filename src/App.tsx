@@ -52,7 +52,15 @@ export default function App() {
   const load = () => request<Bootstrap>('/api/bootstrap', { signal: AbortSignal.timeout(15000) }).then(setBoot);
   useEffect(() => {
     const controller = new AbortController();
-    request<Bootstrap>('/api/bootstrap', { signal: controller.signal }).then(setBoot).catch(e => {
+    request<Bootstrap>('/api/bootstrap', { signal: controller.signal }).then(async data => {
+      setBoot(data);
+      const requestedRun=new URLSearchParams(window.location.search).get('run');
+      if(requestedRun&&/^[a-f0-9-]{36}$/.test(requestedRun)){
+        const next=await request<AnalysisRun>(`/api/runs/${requestedRun}`,{signal:controller.signal});
+        setRun(next);setQuestion(next.question);setMode(next.mode);setStartDate(next.dateRange.start);setEndDate(next.dateRange.end);
+        setSelectedClaim(preferredClaim(next));setEditing(false);setView('origins');
+      }
+    }).catch(e => {
       if (!controller.signal.aborted) setError(e instanceof Error ? e.message : '자료를 불러오지 못했습니다.');
     });
     return () => controller.abort();

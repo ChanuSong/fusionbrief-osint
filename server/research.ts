@@ -20,6 +20,7 @@ import { DPRK_MEDIA, DPRK_ARCHIVE } from './dprk-media.ts';
 import { applySourceQuality } from './source-quality.ts';
 import { analyzeImagery } from './imagery-analysis.ts';
 import { budgetDocumentContext } from './model-context.ts';
+import { collectObservationFeeds, observationDocuments } from './observation-feeds.ts';
 
 export const strategySchema = z.object({
   interpretation: z.string().min(1).max(600), decision: z.string().min(1).max(400),
@@ -173,6 +174,9 @@ export async function research(input: AnalysisInput, onProgress: (event: Researc
   emit('범위', `${plan.scope.geography} · ${plan.scope.period} · ${plan.scope.assumptions.join(' / ')}`, 'complete');
   const sources: SourceDocument[] = [];
   const collections: CollectionResult[] = [];
+  const directObservations = dependencies.search === searchPublic && allSources && /북한|한반도|DPRK|North Korea/i.test(input.question)
+    ? collectObservationFeeds() : undefined;
+  if(directObservations)emit('관측 피드','공개 ADS-B·항만 입출항·북한 관련 SNS 원문을 실제 API와 기관 표에서 수집합니다.','running',{taskId:'direct-observations'});
   const rounds: NonNullable<NonNullable<AnalysisRun['research']>['rounds']> = [];
   const attempted = new Set<string>();
   const executed = new Set<string>();
@@ -215,6 +219,14 @@ export async function research(input: AnalysisInput, onProgress: (event: Researc
     if (extra.length) emit('사건 계획',`북한 원발신 매체와 전체 매체 보존본 탐색 ${extra.length}개 추가`,'complete',{taskId:'dprk-coverage'});
   }
   const allQueries: ResearchQuery[] = framework?.queries.slice() ?? [];
+  if(directObservations){
+    const observations=await directObservations;
+    const documents=observationDocuments(observations);
+    sources.push(...documents);
+    documents.forEach(s=>collections.push({sourceId:s.id,state:'verified',checkedAt:s.retrievedAt,message:'실제 공개 관측 원문 확보 · 수신 시각·지역·자료 한계 포함. 사건 관련성은 별도 검증합니다.'}));
+    observations.feeds.forEach(f=>emit('관측 피드',`${f.provider}: ${f.state==='failed'?f.error:`실제 ${f.count}건 확보`} · ${f.region}${f.scope==='outside-region'?' · 사건 분석에서 제외':''}`,f.state==='failed'?'failed':'complete',{taskId:`feed-${f.id}`,url:f.endpoint}));
+    timing('실제 관측 피드 수집');
+  }
   const eventQueries: ResearchQuery[] = [];
   const eventLimit = Math.min(40, sources.length + 24);
   const eventAttempts = new Set<string>();
@@ -225,6 +237,7 @@ export async function research(input: AnalysisInput, onProgress: (event: Researc
   const compose = (documents: SourceDocument[], previous?: import('../shared/types.ts').ResearchRound) => dependencies.model.generate(reportSchema,
     (framework ? FRAMEWORK_INSTRUCTIONS + 'Return analysis with criterion-event assessments, observation records, judgment, sourced perspectives and alternatives. All factual claims must come from current direct event documents. Normative definitions and past precedents belong in criteria, not current event claims. For every direct document return eventPeriod with exact date-context quote and actual occurrence dates; pre-announcements remain scheduled or announced. Keep framework and precedent source roles separate. Order the analysis judgment, basis and application logically. Do not let minor numerical differences replace the core criterion analysis. ' : '')
     + 'First assess source relevance in collectionAudit against the exact geography, period and requested targets. '
+    + 'Actual ADS-B and port snapshots apply ONLY to their supplied region and observation time. They do not establish historical rerouting, a missile launch, intent, or safety. Public SNS posts establish what the attributed author published, not independent confirmation of the linked event. Check post date versus event date. Out-of-region AIS is excluded from this event context. '
     + 'Source excerpts are selected exact spans from preserved full originals, not necessarily complete documents. Never infer absence or complete coverage from omitted text. '
     + 'For each direct event document provide eventPeriod with actual event dates and an exact date-context body quote. The user date window refers to events, not publication dates; retain advance notices as announced/scheduled and historical cases as precedent. '
     + 'For each source give a short EXACT body quote (12–180 characters) proving relevance, or mark background/irrelevant. '

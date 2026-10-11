@@ -20,6 +20,7 @@ import { buildAnalysisOntology, ontologyJSONLD } from '../shared/analysis-ontolo
 import { readMedia } from './media-cache.ts';
 import { DPRK_MEDIA, DPRK_ARCHIVE } from './dprk-media.ts';
 import { SOURCE_MODULES } from '../shared/source-modules.ts';
+import { collectObservationFeeds, observationSnapshot } from './observation-feeds.ts';
 
 const root = resolve(fileURLToPath(new URL('../', import.meta.url)));
 try { process.loadEnvFile(resolve(root, '.env')); } catch (error) {
@@ -66,6 +67,13 @@ async function body(request: IncomingMessage): Promise<unknown> {
 
 async function api(request: IncomingMessage, response: ServerResponse, path: string): Promise<void> {
   const method = request.method;
+  if (path === '/api/observations' && (method === 'GET' || method === 'POST')) { json(response,200,await collectObservationFeeds(method === 'POST')); return; }
+  const observationMatch=/^\/api\/observations\/snapshots\/([a-f0-9]{64})$/.exec(path);
+  if (method === 'GET' && observationMatch) {
+    const snapshot=await observationSnapshot(observationMatch[1]);
+    if(!snapshot)throw new InputError('보존한 관측 원문을 찾을 수 없습니다.',404);
+    json(response,200,{...snapshot,sha256:observationMatch[1]});return;
+  }
   if (method === 'GET' && path === '/api/source-modules') { json(response,200,{modules:SOURCE_MODULES,dprkMedia:DPRK_MEDIA,archive:DPRK_ARCHIVE}); return; }
   const mediaMatch=/^\/api\/media\/([a-f0-9]{64})$/.exec(path);
   if (method==='GET' && mediaMatch) {

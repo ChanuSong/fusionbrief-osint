@@ -2,7 +2,7 @@
 
 기준일: 2026-10-10. 로컬 프로토타입 검증이며 군 도메인 전문가의 승인 기록은 아니다.
 
-현재 구현·검증 결과는 문서 마지막의 **김주애 대표 사례·기준 우선 분석·이미지 검증** 항목을 따른다. 아래의 초기 시연·미연결 목록·테스트 수는 당시 기록이다.
+현재 구현·검증 결과는 문서 마지막의 **대표 사례 및 실제 공개 관측 피드** 항목을 따른다. 아래의 초기 시연·미연결 목록·테스트 수는 당시 기록이다.
 
 ## 확인한 사용자 흐름
 
@@ -267,3 +267,25 @@ CAPTCHA, 정상적인 결과 없음, 해석할 수 없는 응답을 구분하고
 검증 단계 5분 57초, 전체 재개 실행 19분 14초. 일부 원문·응답을 재사용한 실제 기록이며 신규 질문의 보장 처리 시간이 아닙니다. 수작업 74분은 가정입니다.
 
 하단 독립 KG를 제거하고 핵심 판단·문장에 연결된 근거 그래프를 모달로 제공합니다. 새로운 PDF는 output/submission/fusionbrief-risk-report.pdf, 8개 스크린샷은 output/submission/screenshots/fusionbrief-*.png, 영상은 output/submission/fusionbrief-walkthrough.mp4입니다.
+
+
+## 2026-10-11 대표 사례 및 실제 공개 관측 피드
+
+기록 시각: 2026-10-11T01:59:03.851Z. 기존 분석 36c8ba1a-bf51-44d5-a240-d7c0e0f8afce의 모의 피드를 제거했고 사용자 최신 분석은 보존했다. OpenSky, adsb.lol, 인천항만공사 iCON, MyShipTracking, VesselFinder, Fintraffic Digitraffic, 38 North 및 Martyn Williams Bluesky의 실제 공개 수집기 8개를 연결했다. 아래의 건수는 이 수집 시점의 응답이며 항상 확보되는 수를 보장하지 않는다.
+
+| 공개 피드 | 유효 레코드 | 결과 |
+| --- | ---: | --- |
+| opensky | 155 | collected |
+| adsblol | 115 | collected |
+| digitraffic | 808 | collected |
+| incheon-port | 20 | collected |
+| eastasia-ais | 2 | collected |
+| taurus-ais-summary | 1 | collected |
+| 38north-social | 29 | collected |
+| martyn-social | 23 | collected |
+
+실제 네트워크 → 원문 SHA-256 → 항공·선박 지도/항만 표/SNS 본문 → 화면 재수집 POST 200 → 기존 보고서 위험도 유지 → 모바일 390px 가로 넘침 없음, 브라우저 오류 0건을 확인했다. 지도 제공자 빠른 전환도 확인했다. 단위 테스트 128개와 프로덕션 빌드가 통과했다. 화면 기록은 output/submission/live-feeds/에 있다. 공개 원문은 data/showcase/observations/에 보존한다.
+
+동아시아 AIS는 공개 페이지의 마지막 수신 위치·상태이며 지속적인 전세계 스트림은 아니다. 원문 시각에 시간대가 없으면 UTC 시각으로 변환하지 않는다. 동일 선박 식별자와 인천항 호출부호, 제공자별 수신 시점을 대조한다. Fintraffic의 핀란드 위치는 한반도 사건 근거에서 제외한다. 두 항공 위치 피드도 공통 수신망을 사용할 수 있어 독립 사건 확인이나 신뢰도 상승으로 자동 계산하지 않는다.
+
+새 북한 질문의 실제 관측 문서가 수집 파이프라인의 모델 입력으로 전달되도록 연결했다. 이번 검증은 실제 피드 수집·화면·원문 보존과 기존 보고서 불변을 확인했으며, 새 피드를 사용한 전체 모델 보고서 재생성의 완료를 주장하지 않는다. 기존 보고서와 추가 관측을 구분하고 재분석 전에는 위험도를 자동 변경하지 않는다.
