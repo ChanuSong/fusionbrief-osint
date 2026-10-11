@@ -7,7 +7,7 @@ import '@xyflow/react/dist/style.css';
 export interface CanvasNode { id: string; label: string; kind: string; kicker: string; category?: string; subline?: string; ariaLabel?: string; color?: string; }
 export interface CanvasEdge { id: string; from: string; to: string; label: string; derived?: boolean; color?: string; }
 type GraphNode = Node<{ item: CanvasNode }, 'trace'>;
-interface Props { nodes: CanvasNode[]; edges: CanvasEdge[]; focusId?: string; onNode: (id: string) => void; onEdge?: (id: string) => void; label: string; }
+interface Props { nodes: CanvasNode[]; edges: CanvasEdge[]; focusId?: string; onNode: (id: string) => void; onEdge?: (id: string) => void; label: string; legend?: string; }
 function TraceNode({ data }: NodeProps<GraphNode>) {
   const item = data.item;
   return <div className={`trace-node ${item.kind}`} style={{ borderLeftColor: item.color }} title={item.label}>
@@ -29,7 +29,7 @@ function arrange(nodes: CanvasNode[], edges: CanvasEdge[]): GraphNode[] {
     ariaRole: 'button', ariaLabel: item.ariaLabel ?? `${item.kicker}: ${item.label}`, className: `wisdom-node ${item.kind}${item.kind === 'evidence' ? ' evidence-node' : ''}`,
     style: { width: 220, height: 100 }, sourcePosition: Position.Right, targetPosition: Position.Left }));
 }
-function Canvas({ nodes: items, edges: links, focusId, onNode, onEdge, label }: Props) {
+function Canvas({ nodes: items, edges: links, focusId, onNode, onEdge, label, legend }: Props) {
   const initialNodes = useMemo(() => arrange(items, links), [items, links]);
   const [nodes, setNodes, onNodesChange] = useNodesState<GraphNode>(initialNodes);
   const flow = useReactFlow();
@@ -45,7 +45,7 @@ function Canvas({ nodes: items, edges: links, focusId, onNode, onEdge, label }: 
     ariaRole: 'button' as const, ariaLabel: `${items.find(n => n.id === edge.from)?.label} → ${edge.label} → ${items.find(n => n.id === edge.to)?.label}`,
   }));
   return <div className={`interactive-graph ${expanded ? 'expanded' : ''}`}>
-    <div className="wisdom-toolbar"><span className="graph-count">노드 {items.length} · 관계 {links.length}<span>실선: 원문 지지 · 점선: 반박</span></span>
+    <div className="wisdom-toolbar"><span className="graph-count">노드 {items.length} · 관계 {links.length}<span>{legend ?? '실선: 원문 지지 · 점선: 반박'}</span></span>
       <div className="wisdom-tools">
         <button className="icon-button" aria-label="그래프 축소" onClick={() => void flow.zoomTo(Math.max(.15, flow.getZoom() - .15))}><ZoomOut size={16} /></button>
         <span>{zoom}%</span><button className="icon-button" aria-label="그래프 확대" onClick={() => void flow.zoomTo(Math.min(2, flow.getZoom() + .15))}><ZoomIn size={16} /></button>

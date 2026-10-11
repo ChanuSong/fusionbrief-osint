@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { SYNTHETIC_SCENARIO as data, DEFAULT_SCENARIO_OPTIONS as defaults, analyzeSyntheticScenario, crossesZone, distanceKm } from '../shared/synthetic-scenario.ts';
+import { scenarioInsights } from '../shared/scenario-insights.ts';
 
 test('synthetic routing analysis derives paired aircraft and ship detours and excludes stale records',()=>{
   const r=analyzeSyntheticScenario(data,defaults);
@@ -50,4 +51,23 @@ test('synthetic telemetry has distinct routes, ordered samples and plausible air
     }
     if(assessment.tracks.find(a=>a.id===t.id)?.eligible)assert(t.observed[0].minute>=data.zone.startMinute);
   }
+});
+
+test('fusion insight connects transport time burden with the remaining notice window without promoting simulation to fact',()=>{
+  const result=analyzeSyntheticScenario(data,defaults),insight=scenarioInsights(data,result,defaults);
+  assert(insight.comparison);assert.equal(insight.comparison.largerBurden,'sea');
+  assert.equal(insight.comparison.airMinutes,15);assert.equal(insight.comparison.seaMinutes,365);
+  assert.equal(insight.remainingMinutes,720);assert(insight.canForecast);
+  const weatherOptions={...defaults,weather:true};
+  const weather=scenarioInsights(data,analyzeSyntheticScenario(data,weatherOptions),weatherOptions);
+  assert.deepEqual(weather.comparison,insight.comparison);assert(weather.causeUnresolved);
+  const excludedOptions={...defaults,tracks:false};
+  const excluded=scenarioInsights(data,analyzeSyntheticScenario(data,excludedOptions),excludedOptions);
+  assert.equal(excluded.comparison,undefined);assert.equal(excluded.canForecast,false);
+  const noNoticeOptions={...defaults,notice:false};
+  const noNotice=scenarioInsights(data,analyzeSyntheticScenario(data,noNoticeOptions),noNoticeOptions);
+  assert(noNotice.comparison);assert.equal(noNotice.remainingMinutes,undefined);assert.equal(noNotice.canForecast,false);
+  const expiredData={...data,asOfMinute:data.zone.endMinute+1};
+  const expired=scenarioInsights(expiredData,analyzeSyntheticScenario(expiredData,defaults),defaults);
+  assert.equal(expired.remainingMinutes,undefined);assert.equal(expired.canForecast,false);
 });

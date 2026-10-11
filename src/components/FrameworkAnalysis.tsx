@@ -1,12 +1,16 @@
 import { SourcePortfolio } from './SourcePortfolio.tsx';
 import type { AnalysisRun, CriterionBasis, Evidence } from '../../shared/types.ts';
-import { lazy, Suspense, useMemo } from 'react';
+import { lazy, Suspense, useMemo, useState } from 'react';
 import {GitBranch} from 'lucide-react';
 import { assessmentPaths, buildAnalysisOntology } from '../../shared/analysis-ontology.ts';
 import { AUTHORITY_LABEL, CONFIDENCE_LABEL, CRITERION_STATUS, DIMENSION_LABEL, OBSERVATION_LABEL, reportContent } from '../../shared/report-content.ts';
 import { SOURCE_MODULES } from '../../shared/source-modules.ts';
 import { mediaURL, reportExportURL } from '../resources.ts';
 import { RecommendedActions, RiskChart, RiskConclusion } from './RiskBrief.tsx';
+import { FusionInsightBrief } from './FusionInsightBrief.tsx';
+import { SYNTHETIC_SCENARIO, DEFAULT_SCENARIO_OPTIONS, analyzeSyntheticScenario } from '../../shared/synthetic-scenario.ts';
+import type { ScenarioOptions } from '../../shared/synthetic-scenario.ts';
+import type { ScenarioProof } from '../SyntheticScenario.tsx';
 
 const SyntheticImpact=lazy(()=>import('../SyntheticScenario.tsx'));
 
@@ -20,6 +24,10 @@ export function FrameworkAnalysis({ run, onEvidence, onBasis, onRevalidate, busy
   const content = reportContent(run);
   const pending = framework.verification !== 'verified';
   const riskPending = !!run.risk && run.risk.verification !== 'verified';
+  const fusionCase = run.id === '36c8ba1a-bf51-44d5-a240-d7c0e0f8afce';
+  const [scenarioOptions, setScenarioOptions] = useState<ScenarioOptions>({ ...DEFAULT_SCENARIO_OPTIONS });
+  const [scenarioProof, setScenarioProof] = useState<ScenarioProof>();
+  const scenarioResult = useMemo(() => fusionCase ? analyzeSyntheticScenario(SYNTHETIC_SCENARIO, scenarioOptions) : undefined, [fusionCase, scenarioOptions]);
   const forecast = framework.dimension === 'forecast';
   const succession = /후계|승계|계승|succession/i.test(run.question);
   const riskLead = !pending && run.risk?.verification === 'verified' && run.risk.overall.level !== 'unassessed' ? run.risk.overall : undefined;
@@ -34,19 +42,23 @@ export function FrameworkAnalysis({ run, onEvidence, onBasis, onRevalidate, busy
   const n = framework.counts;
   const segments = [{ label: '충족', value: n.met, className: 'met' }, { label: '부분 확인', value: n.partial, className: 'partial' },
     { label: '미확인', value: n.unknown, className: 'unknown' }, { label: '불충족', value: n.notMet, className: 'not-met' }, { label: '적용 제외', value: n.notApplicable, className: 'not-applicable' }].filter(s => s.value > 0);
+  const leadDetails = <>
+      <p className="framework-lead">{riskLead ? riskLead.summary : framework.judgment.text} {citations(lead.claimIds)} {graphLink(lead.claimIds,riskLead ? riskLead.summary : framework.judgment.text)}</p>
+      <p className={`confidence-reason confidence-${lead.confidence.level}`}><strong>신뢰도 {CONFIDENCE_LABEL[lead.confidence.level]}</strong> · {lead.confidence.reason}</p>
+      {framework.judgment.limitations.length ? <div className="document-judgment-limits"><h3>판단의 한계</h3><ul className="framework-material-gaps">{framework.judgment.limitations.slice(0,3).map(l => <li key={l}>{l}</li>)}</ul>{framework.judgment.limitations.length>3 ? <details className="print-disclosure"><summary>추가 한계 {framework.judgment.limitations.length-3}건 확인</summary><ul className="framework-material-gaps">{framework.judgment.limitations.slice(3).map(l=><li key={l}>{l}</li>)}</ul></details> : null}</div> : null}
+  </>;
   return <div className="framework-report">
     <section id="report-answer" tabIndex={-1} className="answer-section framework-conclusion" aria-labelledby="answer-title">
       <div className="answer-heading"><h2 id="answer-title">핵심 판단</h2></div>
       <p className="framework-dimension">{DIMENSION_LABEL[framework.dimension]}에 대한 판단</p>
       <RiskConclusion run={run} />
-      <p className="framework-lead">{riskLead ? riskLead.summary : framework.judgment.text} {citations(lead.claimIds)} {graphLink(lead.claimIds,riskLead ? riskLead.summary : framework.judgment.text)}</p>
-      <p className={`confidence-reason confidence-${lead.confidence.level}`}><strong>신뢰도 {CONFIDENCE_LABEL[lead.confidence.level]}</strong> · {lead.confidence.reason}</p>
-      {framework.judgment.limitations.length ? <div className="document-judgment-limits"><h3>판단의 한계</h3><ul className="framework-material-gaps">{framework.judgment.limitations.slice(0,3).map(l => <li key={l}>{l}</li>)}</ul>{framework.judgment.limitations.length>3 ? <details className="print-disclosure"><summary>추가 한계 {framework.judgment.limitations.length-3}건 확인</summary><ul className="framework-material-gaps">{framework.judgment.limitations.slice(3).map(l=><li key={l}>{l}</li>)}</ul></details> : null}</div> : null}
+      {fusionCase && !pending && !riskPending && scenarioResult ? <FusionInsightBrief result={scenarioResult} options={scenarioOptions} citations={citations} graphLink={graphLink} onProof={(sourceId,view='source')=>setScenarioProof({sourceId,view})}/> : null}
+      {fusionCase && !pending && !riskPending ? <details className="fusion-lead-details"><summary>종합 판단·신뢰도·자료 한계 확인</summary>{leadDetails}</details> : leadDetails}
       {pending || riskPending ? <div className="framework-revalidate" role="status"><p>{!pending ? '변경된 근거로 위험 평가와 권장 액션을 다시 검증해야 합니다.' : framework.verification === 'pending' ? '원출처 검토가 변경되었습니다. 변경된 근거로 기준과 결론을 다시 대조해야 합니다.' : '독립 검증을 완료하지 못했습니다. 기준과 근거를 다시 대조해야 합니다.'}</p><button className="primary-button" disabled={busy} onClick={() => void onRevalidate()}>{busy ? '재검증 중…' : '기준별 판단 재검증'}</button></div> : null}
     </section>
     {!pending && framework.keyJudgments?.length ? <section className="framework-section" aria-labelledby="key-judgments-title"><div className="answer-heading"><h2 id="key-judgments-title">주요 판단</h2><span>관측 · 해석 · 전망의 근거</span></div><ol className="intel-key-judgments">{framework.keyJudgments.map((item,i)=><li key={i}><span className="intel-judgment-number">({i+1})</span><div><h3>{item.label}</h3><p>{item.text} {citations(item.claimIds)} {graphLink(item.claimIds,item.text)}</p><small>근거 신뢰도 {CONFIDENCE_LABEL[item.confidence.level]} · {item.confidence.reason}</small></div></li>)}</ol></section> : null}
     <RiskChart run={run} onEvidence={onEvidence} />
-    {run.id==='36c8ba1a-bf51-44d5-a240-d7c0e0f8afce'?<Suspense fallback={<p>운항 영향 보강 분석을 불러오고 있습니다.</p>}><SyntheticImpact/></Suspense>:null}
+    {fusionCase && scenarioResult ? <Suspense fallback={<p>운항 영향 보강 분석을 불러오고 있습니다.</p>}><SyntheticImpact result={scenarioResult} options={scenarioOptions} onOptionsChange={setScenarioOptions} proof={scenarioProof} onProofChange={setScenarioProof}/></Suspense>:null}
     <SourcePortfolio run={run} onEvidence={onEvidence} />
     {content.criteria.length ? <section id="report-criteria" tabIndex={-1} className="framework-section" aria-labelledby="criteria-title">
       <div className="answer-heading"><h2 id="criteria-title">{forecast ? '판단 지표와 근거 대조' : '판단 기준과 사건 대조'}</h2><span>{succession ? '후보 육성 · 공식 지명 · 실제 권한을 구분' : '기준의 출처 · 적용 조건 · 관측 근거'}</span></div>

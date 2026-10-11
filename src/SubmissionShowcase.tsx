@@ -8,7 +8,12 @@ import { originColors } from './lib.ts';
 import { publicResource } from './resources.ts';
 import { PRIMARY_QUESTION, PRIMARY_SCENARIO_ID } from '../shared/primary-scenario.ts';
 
-interface SavedCase { id: string; title: string; subtitle: string; file: string; documents: number; citations: number; criteria?: number; actions?: number; }
+interface SavedCase { id: string; runId?:string; title: string; subtitle: string; file: string; documents: number; citations: number; criteria?: number; actions?: number; }
+async function readSavedCase(item:SavedCase,signal:AbortSignal):Promise<AnalysisRun>{
+  const response=await fetch(publicResource(item.file),{signal});
+  if(!response.ok)throw Error('보존 보고서를 읽지 못했습니다.');
+  return response.json();
+}
 export function SubmissionShowcase() {
   const [cases, setCases] = useState<SavedCase[]>([]);
   const [run, setRun] = useState<AnalysisRun>();
@@ -22,21 +27,30 @@ export function SubmissionShowcase() {
   const colors = useMemo(() => run ? originColors(run) : new Map<string, string>(), [run]);
   useEffect(() => {
     const controller = new AbortController();
-    fetch(publicResource('reports/catalog.json'), { signal: controller.signal }).then(r => { if (!r.ok) throw Error('보존 보고서 목록을 읽지 못했습니다.'); return r.json(); }).then(setCases).catch(e => { if (!controller.signal.aborted) setError(e.message); });
+    fetch(publicResource('reports/catalog.json'), { signal: controller.signal }).then(r => { if (!r.ok) throw Error('보존 보고서 목록을 읽지 못했습니다.'); return r.json(); }).then(async (items:SavedCase[])=>{
+      setCases(items);
+      const requested=new URLSearchParams(window.location.search).get('run');
+      const item=items.find(c=>c.runId===requested||c.id===requested);
+      if(item){
+        setBusy(true);
+        try{const next=await readSavedCase(item,controller.signal);setRun(next);setClaimId(next.claims[0]?.id??'');}
+        finally{if(!controller.signal.aborted)setBusy(false);}
+      }
+    }).catch(e => { if (!controller.signal.aborted) setError(e.message); });
     return () => controller.abort();
   }, []);
-  useEffect(() => { if (run) { headingRef.current?.focus({ preventScroll: true }); window.scrollTo({ top: 0, behavior: 'instant' }); } }, [run]);
+  useEffect(() => { if (run) { headingRef.current?.focus({ preventScroll: true }); const target=document.getElementById(window.location.hash.slice(1));if(target)target.scrollIntoView();else window.scrollTo({ top: 0, behavior: 'instant' }); } }, [run]);
   const open = async (item: SavedCase) => {
     if (busy) return;
     setBusy(true); setError('');
     try {
-      const response = await fetch(publicResource(item.file), { signal: AbortSignal.timeout(15000) });
-      if (!response.ok) throw Error('보존 보고서를 읽지 못했습니다.');
-      const next = await response.json() as AnalysisRun;
+      const next = await readSavedCase(item,AbortSignal.timeout(15000));
+      const url=new URL(window.location.href);url.searchParams.set('run',next.id);url.hash='';window.history.replaceState(null,'',url);
       setRun(next); setClaimId(next.claims[0]?.id ?? ''); setView('origins');
     } catch (e) { setError(e instanceof Error ? e.message : '보고서를 읽지 못했습니다.'); }
     finally { setBusy(false); }
   };
+  const closeReport=()=>{const url=new URL(window.location.href);url.searchParams.delete('run');url.hash='';window.history.replaceState(null,'',url);setRun(undefined);};
   const showEvidence = (evidence: Evidence) => { const source = run?.sources.find(s => s.id === evidence.sourceId); if (source) setDrawer({ source, evidence }); };
   const showBasis = (basis: CriterionBasis) => { const source = run?.sources.find(s => s.id === basis.sourceId); if (source) setDrawer({ source, basis }); };
   const unavailable = async () => {};
@@ -55,7 +69,7 @@ export function SubmissionShowcase() {
         <section className="showcase-value" aria-label="시스템의 효용"><article><span className="eyebrow">INSIGHT</span><h2>자료 사이에서 위험 신호를 찾습니다.</h2><p>발표와 관측의 충돌, 기존 제한과 새 사건의 차이를 대조합니다. 어떤 근거가 판단을 바꾸는지와 추가로 확인할 정보를 제시합니다.</p></article><article><span className="eyebrow">ANALYST TIME</span><h2>반복 조사를 자동화합니다.</h2><p>다국어 검색, 원문 확보, 인용·번역 대조와 보고서 작성을 연결합니다. 분석가는 출처를 오가는 반복 작업을 줄이고 핵심 판단과 검토에 집중합니다.</p></article><article><span className="eyebrow">EVIDENCE ONTOLOGY</span><h2>판단의 전제를 추적합니다.</h2><p>기준·사건·주장·원문을 근거 온톨로지로 연결합니다. 같은 발표의 중복을 확인하고, 근거 변경 시 판단과 위험도를 다시 검증합니다.</p></article></section>
         <section className="showcase-cases"><h2>실제 분석 결과</h2><p>기사 수, 독립 원출처 수, 판단 기준 충족 수를 구분합니다. 근거가 부족하면 판단을 유보합니다.</p><div>{cases.map(item => <button key={item.id} disabled={busy} onClick={() => void open(item)}><span className="eyebrow">{item.documents}개 원문 · {item.citations}개 사건 인용</span><strong>{item.title}</strong><span>{item.subtitle}</span><ArrowUpRight size={18} /></button>)}</div></section>
         <section className="showcase-video"><div><p className="eyebrow">PRODUCT WALKTHROUGH</p><h2>보고서에서 원문까지</h2><p>판단 기준과 사건 대조, 출처별 검증, 위험도 색상 그래프와 권장 추가 액션을 실제 화면으로 살펴봅니다.</p></div><video controls preload="metadata" poster={publicResource('screenshots/fusionbrief-01-report.png')}><source src={publicResource('fusionbrief-walkthrough.mp4')} type="video/mp4" />브라우저에서 영상을 재생할 수 없습니다.</video><a className="secondary-button" href={publicResource('fusionbrief-walkthrough.mp4')}><Play size={15} />영상 열기</a></section>
-      </> : <><div className="showcase-report-banner"><button className="ghost-button" onClick={() => setRun(undefined)}><ChevronLeft size={16} />사례 목록</button><span>보존한 실제 분석 결과 · 실시간 수집 아님 · 검토 전 초안</span></div><ReportView run={run} colors={colors} claim={run.claims.find(c => c.id === claimId)} onSelectClaim={setClaimId} view={view} onView={setView} onEvidence={showEvidence} onBasis={showBasis} onReview={unavailable} onApprove={unavailable} onRevalidate={unavailable} reviewBusy={false} locked={false} headingRef={headingRef} evidenceRef={evidenceRef} readOnly /></>}
+      </> : <><div className="showcase-report-banner"><button className="ghost-button" onClick={closeReport}><ChevronLeft size={16} />사례 목록</button><span>보존한 실제 분석 결과 · 실시간 수집 아님 · 검토 전 초안</span></div><ReportView run={run} colors={colors} claim={run.claims.find(c => c.id === claimId)} onSelectClaim={setClaimId} view={view} onView={setView} onEvidence={showEvidence} onBasis={showBasis} onReview={unavailable} onApprove={unavailable} onRevalidate={unavailable} reviewBusy={false} locked={false} headingRef={headingRef} evidenceRef={evidenceRef} readOnly /></>}
     </main>
     <footer className="showcase-footer">FUSIONBRIEF · T2-1 Fusion OSINT Copilot · 공개 자료만 사용 · 가능성과 근거 신뢰도를 구분합니다.</footer>
     {drawer ? <EvidenceDialog {...drawer} onClose={() => setDrawer(undefined)} /> : null}

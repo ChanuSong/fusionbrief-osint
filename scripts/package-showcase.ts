@@ -8,7 +8,7 @@ const output = 'dist-showcase';
 await mkdir(`${output}/reports`, { recursive: true });
 await mkdir(`${output}/exports`, { recursive: true });
 await rename(`${output}/showcase.html`, `${output}/index.html`);
-const catalog: { id: string; title: string; subtitle: string; file: string; documents: number; citations: number; criteria: number; actions: number }[] = [];
+const catalog: { id: string; runId: string; title: string; subtitle: string; file: string; documents: number; citations: number; criteria: number; actions: number }[] = [];
 for (const id of ['nk-escalation-risk', 'nk-succession', 'taiwan-strait-2026', 'nk-pow-disclosure']) {
   const pack = JSON.parse(await readFile(`data/demo/${id}.json`, 'utf8')) as DemoPackage;
   validateDemo(pack);
@@ -38,5 +38,5 @@ async function save(run: AnalysisRun, id: string, title: string, subtitle: strin
   await writeFile(`${output}/${file}`, JSON.stringify(run));
   await writeFile(`${output}/exports/${run.id}.md`, exportMarkdown(run));
   await writeFile(`${output}/exports/${run.id}.jsonld`, JSON.stringify(ontologyJSONLD(buildAnalysisOntology(run))));
-  catalog.push({ id, title, subtitle, file, documents: run.sources.length, citations: run.evidence.length, criteria: run.analysis?.criteria.filter(c => c.basisStatus === 'verified').length ?? 0, actions: run.risk?.actions.length ?? 0 });
+  catalog.push({ id, runId:run.id, title, subtitle, file, documents: run.sources.length, citations: run.evidence.length, criteria: run.analysis?.criteria.filter(c => c.basisStatus === 'verified').length ?? 0, actions: run.risk?.actions.length ?? 0 });
 }

@@ -1,5 +1,6 @@
-import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react';
-import { SYNTHETIC_SCENARIO as data, DEFAULT_SCENARIO_OPTIONS, analyzeSyntheticScenario } from '../shared/synthetic-scenario.ts';
+import { lazy, Suspense, useEffect, useRef, useState } from 'react';
+import type { Dispatch, SetStateAction } from 'react';
+import { SYNTHETIC_SCENARIO as data } from '../shared/synthetic-scenario.ts';
 import type { ScenarioOptions, SyntheticAssessment } from '../shared/synthetic-scenario.ts';
 import { RISK_LABELS, RISK_LEVELS } from '../shared/risk-policy.ts';
 import './risk-brief.css';
@@ -9,12 +10,13 @@ const ScenarioKG=lazy(()=>import('./components/ScenarioKnowledgeGraph.tsx'));
 const ScenarioMap=lazy(()=>import('./components/ScenarioRouteMap.tsx'));
 const offsetTime=(minute:number)=>`T+${(minute/60).toFixed(1).replace(/\.0$/,'')}h`;
 
-function EvidencePanel({sourceId,onClose,result}:{sourceId:string;onClose:()=>void;result:SyntheticAssessment}){
-  const ref=useRef<HTMLDialogElement>(null),[tab,setTab]=useState<'source'|'graph'>('source'),[focusedSourceId,setFocusedSourceId]=useState(sourceId);
+export interface ScenarioProof { sourceId: string; view: 'source' | 'graph'; }
+function EvidencePanel({sourceId,initialView,onClose,result}:{sourceId:string;initialView:'source'|'graph';onClose:()=>void;result:SyntheticAssessment}){
+  const ref=useRef<HTMLDialogElement>(null),[tab,setTab]=useState<'source'|'graph'>(initialView),[focusedSourceId,setFocusedSourceId]=useState(sourceId);
   const source=data.sources.find(s=>s.id===focusedSourceId)!;
   useEffect(()=>{const dialog=ref.current;dialog?.showModal();return()=>dialog?.close();},[]);
   return <dialog ref={ref} className={`scenario-evidence${tab==='graph'?' scenario-evidence-graph':''}`} onCancel={onClose}>
-    <header><div><span className="scenario-label">합성 시나리오 원문</span><h2>{source.title}</h2></div><button className="secondary-button" onClick={onClose}>닫기</button></header>
+    <header><div><span className="scenario-label">{tab==='graph'?'합성 시나리오 · 분석 경로':'합성 시나리오 원문'}</span><h2>{tab==='graph'?'인사이트가 도출된 근거 연결':source.title}</h2></div><button className="secondary-button" onClick={onClose}>닫기</button></header>
     <div className="scenario-evidence-tabs"><button aria-pressed={tab==='source'} onClick={()=>setTab('source')}>원문·관측 레코드</button><button aria-pressed={tab==='graph'} onClick={()=>setTab('graph')}>근거 그래프</button></div>
     {tab==='source'?<><p>{source.id} · {source.origin} · 시나리오 판본 {data.version}</p><blockquote>{source.body}</blockquote>
       {source.id==='SIM-N1'&&result.publications.some(p=>p.derivedFrom===source.id)?<details><summary>동일 경보의 합성 뉴스·SNS 재전파 {result.publications.filter(p=>p.derivedFrom===source.id).length}건 · 원출처 1개로 묶음</summary><ul>{result.publications.filter(p=>p.derivedFrom===source.id).map(p=><li key={p.id}>{p.id} · {p.title} → {p.derivedFrom} · {p.origin}</li>)}</ul></details>:null}
@@ -23,9 +25,11 @@ function EvidencePanel({sourceId,onClose,result}:{sourceId:string;onClose:()=>vo
     <p className="scenario-evidence-footer">모든 노드와 레코드는 합성입니다. 실제 북한 사건·공식 경보·실제 운항을 나타내지 않습니다.</p>
   </dialog>;
 }
-export default function SyntheticScenario(){
-  const [options,setOptions]=useState<ScenarioOptions>({...DEFAULT_SCENARIO_OPTIONS}),[sourceId,setSourceId]=useState<string>();
-  const result=useMemo(()=>analyzeSyntheticScenario(data,options),[options]);
+export default function SyntheticScenario({options,result,onOptionsChange:setOptions,proof,onProofChange}:{
+  options:ScenarioOptions;result:SyntheticAssessment;onOptionsChange:Dispatch<SetStateAction<ScenarioOptions>>;
+  proof?:ScenarioProof;onProofChange:(proof?:ScenarioProof)=>void;
+}){
+  const setSourceId=(sourceId:string)=>onProofChange({sourceId,view:'source'});
   const firstSeaDetour=Math.min(...data.tracks.filter(t=>t.kind==='vessel'&&result.tracks.some(a=>a.id===t.id&&a.rerouted)).flatMap(t=>t.observed.filter(p=>p.latitude<data.zone.south||p.latitude>data.zone.north).map(p=>p.minute)));
   const toggle=(key:'tracks'|'notice'|'weather')=>setOptions(old=>({...old,[key]:!old[key]}));
   const cite=(id:string)=><button className="scenario-citation" onClick={()=>setSourceId(id)}>[{id}]</button>;
@@ -39,7 +43,7 @@ export default function SyntheticScenario(){
       <div className="scenario-metrics"><div><strong>{result.air.rerouted}/{result.air.eligible}</strong><span>검토한 항공기 우회</span><small>추가 이동 약 {result.meanAirExtraMinutes}분 {cite('SIM-A1')}</small></div><div><strong>{result.sea.rerouted}/{result.sea.eligible}</strong><span>유효 선박 관측 우회</span><small>추가 이동 약 {result.meanSeaExtraMinutes}분 {cite('SIM-M1')}</small></div><div><strong>{result.excluded}</strong><span>오래된 수신 제외</span><small>과거 위치를 현재로 오인하지 않음</small></div></div>
       <p className="scenario-time-method">추가 시간은 전후 항적의 구면 거리 차이와 이전 평균 이동 속도로 계산한 추정입니다. 실제 도착 지연 측정값이 아닙니다. 표본 내 우회 비율이며 전체 교통량으로 일반화하지 않습니다.</p>
       <div className="scenario-separate-judgments"><div><strong>시험경보와의 연관성</strong><span>{result.attribution==='supported'?'공간·시각 정합 · 인과 미확정':'원인 귀속 유보'}</span><p>{options.weather?'동일 시각·해역의 강풍이라는 경쟁 설명이 있습니다.':options.notice?'경보 발효 구역과 이후 항로 변화가 맞물립니다.':'경보 원문을 검토에서 제외했습니다.'} {options.weather?cite('SIM-W1'):options.notice?cite('SIM-N1'):null}</p></div><div><strong>미사일 발사·군사 공격</strong><span>판단 유보</span><p>민간 우회나 시험경보는 발사 실행·무기 성능·공격 의도를 입증하지 않습니다.</p></div></div>
-      <button className="scenario-graph-trigger" onClick={()=>setSourceId(options.notice?'SIM-N1':'SIM-A1')}>이 판단의 근거 경로 보기 →</button>
+      <button className="scenario-graph-trigger" onClick={()=>onProofChange({sourceId:options.notice?'SIM-N1':'SIM-A1',view:'graph'})}>이 판단의 근거 경로 보기 →</button>
       </section>
       <section id="scenario-map"><p className="eyebrow">TEMPORAL & SPATIAL CROSS-CHECK</p><h3>경보 전후의 항로 변화</h3><p>동해 지리 배경에 최신성 검사를 통과한 합성 관측만 표시합니다. 회색은 이전 항적, 파란색은 항공, 황색은 선박입니다. 개체를 눌러 위치·속도·수신 시각을 확인할 수 있습니다.</p><div className="scenario-map-grid"><figure><figcaption>이전 · 제한구역 통과 항로</figcaption><Suspense fallback={<div className="scenario-geographic-map">지리 배경을 불러오고 있습니다.</div>}><ScenarioMap period="baseline" result={result} options={options}/></Suspense></figure><figure><figcaption>이후 · 발효기간의 우회 항로</figcaption><Suspense fallback={<div className="scenario-geographic-map">지리 배경을 불러오고 있습니다.</div>}><ScenarioMap period="observed" result={result} options={options}/></Suspense></figure></div>
       <ol className="scenario-timeline"><li><b>T+0</b><span>가상 제한 경보 발효</span></li><li><b>{Number.isFinite(firstSeaDetour)?offsetTime(firstSeaDetour):'관측 제외'}</b><span>선박 우회 구간 관측</span></li><li><b>{offsetTime(data.asOfMinute)}</b><span>항공·해상 대조 및 평가</span></li><li><b>{offsetTime(data.zone.endMinute)}</b><span>경보 만료 · 연장 여부 재확인</span></li></ol></section>
@@ -49,6 +53,6 @@ export default function SyntheticScenario(){
       <section id="scenario-actions"><p className="eyebrow">RECOMMENDED NEXT ACTIONS</p><h3>결론에서 다음 확인으로</h3><ol className="scenario-actions"><li><div><span>즉시 · 분석가</span><h4>항행 경보 원문과 유효기간 확인</h4><p>항공 FIR NOTAM·해상 NAVAREA의 시각·구역·발신 주체와 연장 여부를 원문으로 대조합니다.</p><small>완료 조건: 구역·발효·만료·변경 이력 일치 확인 / 불일치하면 지속 위험 재평가</small></div></li><li><div><span>30분 내 · 교통 분석 담당</span><h4>동일 표본의 우회 지속 여부 재관측</h4><p>신선한 항적만 비교하고, 이전 경로 복귀·우회 비율·추가 거리 추세를 확인합니다.</p><small>재평가 신호: 우회 감소 또는 제한 연장 / 현재 표본을 전체 항공·해상 운항으로 확대 해석하지 않음</small></div></li><li><div><span>병행 · 분석가</span><h4>기상·관제·통상 훈련이라는 경쟁 설명 대조</h4><p>{options.weather?'동시간 강풍을 포함해 우회 원인을 다시 검토합니다.':'기상 자료와 관제 공지를 확보해 시험경보 외의 설명을 검토합니다.'} 미사일 발사 실행은 별도 탐지·발표 자료로 확인합니다.</p><small>완료 조건: 경쟁 원인의 공간·시각 대조 / 공격 의도 판단에는 별도 근거 필요</small></div></li></ol>
       <div className="scenario-outlook"><strong>향후 24시간 전망 · 조건부</strong><p>{options.notice&&options.tracks?'경보가 유지되는 잔여 12시간에는 우회가 지속될 수 있습니다. T+48h 만료 후 항로가 복귀하면 운항 위험을 낮추고, 경보가 연장되면 영향 기간을 다시 평가합니다.':'경보 유효기간 또는 전후 관측이 빠져 영향 지속 시간을 판단하기 어렵습니다. 먼저 누락된 원문·항적을 확인합니다.'}</p></div></section>
       <section className="scenario-method"><details><summary>분석 방법·실행 기록·합성 입력</summary><p>미리 생성한 합성 입력에 좌표 교차·수신 최신성·구면 거리·원출처 중복·제품 위험 행렬을 실제로 계산합니다. 새로운 공개 수집이나 LLM 호출을 수행한 것으로 표시하지 않습니다.</p><p>운항 영향 지표: 양쪽 표본에서 절반 이상 우회가 관측되고 경보가 발효 중이면 가능성 ‘높음’ × 영향 ‘중대’로 분류합니다. 입력·기준은 이 시연을 위한 제품 정의이며 검증된 운항 예측 모델이나 공식 경보가 아닙니다.</p><ol>{result.trace.map(t=><li key={t.stage}><b>{t.stage}</b> · {t.result}</li>)}</ol><button className="secondary-button" onClick={download}>합성 입력·분석 결과 JSON 저장</button></details></section>
-    </div>{sourceId?<EvidencePanel key={sourceId} sourceId={sourceId} result={result} onClose={()=>setSourceId(undefined)}/>:null}
+    </div>{proof?<EvidencePanel key={`${proof.sourceId}-${proof.view}`} sourceId={proof.sourceId} initialView={proof.view} result={result} onClose={()=>onProofChange(undefined)}/>:null}
   </section>;
 }
