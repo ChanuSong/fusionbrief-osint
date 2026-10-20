@@ -23,12 +23,13 @@ test('question → report → original quote → graph → timeline → review �
   await page.screenshot({ path: 'test-results/workspace-overview.png', fullPage: true });
 
   await page.getByRole('tab', { name: /근거 그래프/ }).click();
-  await expect(page.getByRole('heading', { name: '판단의 근거 경로' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: '이 사실을 확인한 근거', exact: true })).toBeVisible();
   await page.keyboard.press('ArrowRight');
   await expect(page.getByRole('tab', { name: /타임라인/ })).toBeFocused();
   await expect(page.getByRole('tab', { name: /타임라인/ })).toHaveAttribute('aria-selected', 'true');
   await page.keyboard.press('ArrowLeft');
-  await expect(page.locator('.graph-panel .evidence-node')).toHaveCount(8);
+  await expect(page.getByRole('tabpanel', { name: '근거 그래프' })
+    .getByRole('button', { name: / 원문 근거 보기$/ })).toHaveCount(8);
   await page.getByRole('button', { name: '일본 방위성 원문 근거 보기', exact: true }).focus();
   await page.keyboard.press('Enter');
   await expect(page.getByRole('dialog')).toBeVisible();
